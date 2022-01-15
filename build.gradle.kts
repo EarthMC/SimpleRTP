@@ -33,7 +33,6 @@ dependencies {
 
 group = "net.earthmc"
 version = "0.0.1"
-description = "SimpleRTP"
 java.sourceCompatibility = JavaVersion.VERSION_17
 
 tasks {
@@ -56,8 +55,11 @@ tasks {
     javadoc {
         options.encoding = Charsets.UTF_8.name()
     }
+
     processResources {
         filteringCharset = Charsets.UTF_8.name()
+
+        expand("version" to project.version)
     }
 }
 

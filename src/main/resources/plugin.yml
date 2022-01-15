@@ -1,5 +1,5 @@
 name: SimpleRTP
-version: '${project.version}'
+version: '${version}'
 main: net.earthmc.simplertp.SimpleRTP
 api-version: 1.17
 authors: [ Warriorrr ]
