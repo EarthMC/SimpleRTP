@@ -1,0 +1,28 @@
+world-name: world
+minX: -100
+maxX: 100
+minZ: -100
+maxZ: 100
+maxY: 128
+
+blacklisted-biomes:
+  - desert
+  - ocean
+  - warm_ocean
+  - deep_ocean
+  - frozen_ocean
+  - deep_frozen_ocean
+  - lukewarm_ocean
+  - deep_lukewarm_ocean
+  - deep_warm_ocean
+  - cold_ocean
+  - deep_cold_ocean
+  - frozen_ocean
+  - cold_ocean
+  - lukewarm_ocean
+  - warm_ocean
+  - snowy_tundra
+  - river
+
+blacklisted-blocks:
+  - leaves

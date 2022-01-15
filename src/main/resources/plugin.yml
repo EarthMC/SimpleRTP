@@ -1,0 +1,27 @@
+name: SimpleRTP
+version: '${project.version}'
+main: net.earthmc.simplertp.SimpleRTP
+api-version: 1.17
+authors: [ Warriorrr ]
+softdepend:
+  - Towny
+
+commands:
+  rtp:
+    description: Teleports the player to a random location.
+
+permissions:
+  simplertp.command.rtp:
+    description: Gives players access to the /rtp command
+    default: op
+
+  simplertp.command.rtp.*:
+    default: op
+    children:
+      simplertp.command.rtp.others: true
+      simplertp.command.rtp.reload: true
+
+  simplertp.command.rtp.others:
+    default: op
+    children:
+      simplertp.command.rtp: true
