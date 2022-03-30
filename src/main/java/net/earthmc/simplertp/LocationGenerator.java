@@ -1,12 +1,11 @@
 package net.earthmc.simplertp;
 
-import net.minecraft.world.level.chunk.LevelChunk;
-import net.minecraft.world.level.levelgen.Heightmap;
 import org.bukkit.Bukkit;
+import org.bukkit.HeightMap;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_17_R1.CraftChunk;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Queue;
@@ -28,7 +27,7 @@ public class LocationGenerator {
         plugin.getLogger().info("Location generator has been started.");
 
         taskID = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
-            if (safeLocations.size() + runningTasks >= 5)
+            if (safeLocations.size() + runningTasks >= 10)
                 return;
 
             runningTasks++;
@@ -61,23 +60,37 @@ public class LocationGenerator {
         final int x = ThreadLocalRandom.current().nextInt(plugin.config().getMinX(), plugin.config().getMaxX());
         final int z = ThreadLocalRandom.current().nextInt(plugin.config().getMinZ(), plugin.config().getMaxZ());
 
-        World world = Bukkit.getWorld(plugin.config().getDefaultWorld());
+        World world = Bukkit.getWorld(NamespacedKey.minecraft("overworld"));
 
         if (plugin.townyCompat() != null && !plugin.townyCompat().isWilderness(new Location(world, x, 0, z)))
             return null;
 
-        final int chunkX = x % 16;
-        final int chunkZ = z % 16;
+        Location location = new Location(world, x, 0, z);
         return world.getChunkAtAsync(x / 16, z / 16).thenApplyAsync(chunk -> {
-            LevelChunk levelChunk = ((CraftChunk) chunk).getHandle();
-            int highestY = levelChunk.getHeight(Heightmap.Types.MOTION_BLOCKING, chunkX, chunkZ);
-            Block block = chunk.getBlock(chunkX, highestY, chunkZ);
+            Block block = world.getHighestBlockAt(location);
 
-            if (block.getY() >= plugin.config().getMaxY() || !plugin.config().isBiomeAllowed(block.getBiome()) || !plugin.config().isBlockAllowed(block.getType()) || !block.isSolid())
+            if (!isBlockSafe(block) || !isBlockAllowed(block))
                 return null;
 
             return block.getLocation().add(0.5, 1, 0.5);
         });
+    }
+
+    public Location generateRespawnLocation(Location deathLocation) {
+        if (deathLocation.getWorld().getEnvironment() == World.Environment.NORMAL) {
+            for (int i = 0; i < 50; i++) {
+                final int xOffset = ThreadLocalRandom.current().nextInt(40, 100) * (ThreadLocalRandom.current().nextBoolean() ? -1 : 1);
+                final int zOffset = ThreadLocalRandom.current().nextInt(40, 100) * (ThreadLocalRandom.current().nextBoolean() ? -1 : 1);
+
+                Block respawnBlock = deathLocation.getWorld().getHighestBlockAt(deathLocation.getBlockX() + xOffset, deathLocation.getBlockZ() + zOffset, HeightMap.MOTION_BLOCKING);
+
+                if (isBlockSafe(respawnBlock))
+                    return respawnBlock.getLocation().add(0.5, 1, 0.5);
+            }
+        }
+
+        // Return a random tp location if no valid nearby location was found
+        return getAndRemove();
     }
 
     public Location generateRandomLocationImmediately() {
@@ -85,7 +98,7 @@ public class LocationGenerator {
             final int x = ThreadLocalRandom.current().nextInt(plugin.config().getMinX(), plugin.config().getMaxX());
             final int z = ThreadLocalRandom.current().nextInt(plugin.config().getMinZ(), plugin.config().getMaxZ());
 
-            World world = Bukkit.getWorld(plugin.config().getDefaultWorld());
+            World world = Bukkit.getWorld(NamespacedKey.minecraft("overworld"));
 
             Block block = world.getHighestBlockAt(x, z);
 
@@ -96,9 +109,20 @@ public class LocationGenerator {
         }
     }
 
+    public boolean isBlockSafe(Block block) {
+        return block.getY() < plugin.config().getMaxY()
+                && !block.isLiquid()
+                && block.getWorld().getWorldBorder().isInside(block.getLocation());
+    }
+
+    public boolean isBlockAllowed(Block block) {
+        return plugin.config().isBiomeAllowed(block.getBiome())
+                && plugin.config().isBlockAllowed(block.getType());
+    }
+
     public Location getAndRemove() {
         if (safeLocations.isEmpty())
-            return generateRandomLocationImmediately();
+            return Bukkit.getWorld(NamespacedKey.minecraft("overworld")).getSpawnLocation();
         else
             return safeLocations.remove();
     }

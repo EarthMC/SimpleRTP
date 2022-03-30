@@ -22,7 +22,7 @@ public final class SimpleRTP extends JavaPlugin {
         this.generator = new LocationGenerator(this);
         generator.start();
 
-        Bukkit.getPluginManager().registerEvents(new PlayerListener(), this);
+        Bukkit.getPluginManager().registerEvents(new PlayerListener(this), this);
         Bukkit.getPluginCommand("rtp").setExecutor(new RTPCommand(this));
 
         if (Bukkit.getPluginManager().isPluginEnabled("Towny"))

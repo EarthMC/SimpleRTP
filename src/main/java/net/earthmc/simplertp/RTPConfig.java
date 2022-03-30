@@ -35,16 +35,11 @@ public class RTPConfig {
 
                     Tag<Material> tag = (Tag<Material>) field.get(null);
                     blacklistedBlocks.addAll(tag.getValues());
-                    SimpleRTP.instance().getLogger().info("tag found: " + materialName);
                 } catch (NoSuchFieldException nsfe) {
                     SimpleRTP.instance().getLogger().warning("Invalid material/tag name: " + materialName);
                 } catch (Exception ignored) {}
             }
         }
-    }
-
-    public String getDefaultWorld() {
-        return config.getString("world-name");
     }
 
     public int getMinX() {

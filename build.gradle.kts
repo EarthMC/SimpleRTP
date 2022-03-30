@@ -1,7 +1,6 @@
 plugins {
     java
     `maven-publish`
-    id("io.papermc.paperweight.userdev") version "1.2.0"
     id("com.github.johnrengelman.shadow") version "7.1.2" apply true
 }
 
@@ -28,19 +27,19 @@ dependencies {
     implementation("net.kyori:adventure-text-minimessage:4.2.0-SNAPSHOT")
     compileOnly("io.papermc.paper:paper-api:1.17.1-R0.1-SNAPSHOT")
     compileOnly("com.palmergames.bukkit.towny:towny:0.97.5.11")
-    paperDevBundle("1.17.1-R0.1-SNAPSHOT")
 }
 
 group = "net.earthmc"
-version = "0.0.1"
+version = "0.0.2"
 java.sourceCompatibility = JavaVersion.VERSION_17
 
 tasks {
     build {
-        dependsOn(reobfJar)
+        dependsOn(shadowJar)
     }
 
     shadowJar {
+        archiveClassifier.set("")
         dependencies {
             include(dependency("net.kyori:adventure-text-minimessage"))
         }
@@ -64,5 +63,5 @@ tasks {
 }
 
 tasks.withType<JavaCompile>() {
-    options.encoding = "UTF-8"
+    options.encoding = Charsets.UTF_8.name()
 }
