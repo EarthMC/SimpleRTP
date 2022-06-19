@@ -16,6 +16,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class LocationGenerator {
     private final SimpleRTP plugin;
     private final Queue<Location> safeLocations = new ConcurrentLinkedQueue<>();
+    private final World world = Bukkit.getWorld(NamespacedKey.minecraft("overworld"));
     private int runningTasks = 0;
     private int taskID = -1;
 
@@ -59,8 +60,6 @@ public class LocationGenerator {
     public CompletableFuture<Location> generateRandomLocation() {
         final int x = ThreadLocalRandom.current().nextInt(plugin.config().getMinX(), plugin.config().getMaxX());
         final int z = ThreadLocalRandom.current().nextInt(plugin.config().getMinZ(), plugin.config().getMaxZ());
-
-        World world = Bukkit.getWorld(NamespacedKey.minecraft("overworld"));
 
         if (plugin.townyCompat() != null && !plugin.townyCompat().isWilderness(new Location(world, x, 0, z)))
             return null;

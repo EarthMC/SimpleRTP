@@ -3,6 +3,7 @@ package net.earthmc.simplertp;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -19,7 +20,15 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onSpawnLocationEvent(PlayerSpawnLocationEvent event) {
-        if (!event.getPlayer().hasPlayedBefore()) {
+        boolean hadInvalidWorld = false;
+        try {
+            hadInvalidWorld = (boolean) Player.class.getMethod("hadInvalidWorld").invoke(event.getPlayer());
+
+            if (hadInvalidWorld)
+                plugin.getLogger().info("Randomly teleporting " + event.getPlayer().getName() + " because their world was invalid.");
+        } catch (Exception ignored) {}
+
+        if (!event.getPlayer().hasPlayedBefore() || hadInvalidWorld) {
             Location location = plugin.generator().getAndRemove();
             event.setSpawnLocation(location);
 
