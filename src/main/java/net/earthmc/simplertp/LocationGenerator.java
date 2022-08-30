@@ -16,12 +16,13 @@ import java.util.concurrent.ThreadLocalRandom;
 public class LocationGenerator {
     private final SimpleRTP plugin;
     private final Queue<Location> safeLocations = new ConcurrentLinkedQueue<>();
-    private final World world = Bukkit.getWorld(NamespacedKey.minecraft("overworld"));
+    private final World world;
     private int runningTasks = 0;
     private int taskID = -1;
 
-    public LocationGenerator(SimpleRTP plugin) {
+    public LocationGenerator(SimpleRTP plugin, World world) {
         this.plugin = plugin;
+        this.world = world;
     }
 
     public void start() {
@@ -61,12 +62,11 @@ public class LocationGenerator {
         final int x = ThreadLocalRandom.current().nextInt(plugin.config().getMinX(), plugin.config().getMaxX());
         final int z = ThreadLocalRandom.current().nextInt(plugin.config().getMinZ(), plugin.config().getMaxZ());
 
-        if (plugin.townyCompat() != null && !plugin.townyCompat().isWilderness(new Location(world, x, 0, z)))
+        if (plugin.townyCompat() != null && !plugin.townyCompat().isWilderness(world, x, z))
             return null;
 
-        Location location = new Location(world, x, 0, z);
         return world.getChunkAtAsync(x / 16, z / 16).thenApplyAsync(chunk -> {
-            Block block = world.getHighestBlockAt(location);
+            Block block = world.getHighestBlockAt(x, z);
 
             if (!isBlockSafe(block) || !isBlockAllowed(block))
                 return null;
@@ -121,7 +121,7 @@ public class LocationGenerator {
 
     public Location getAndRemove() {
         if (safeLocations.isEmpty())
-            return Bukkit.getWorld(NamespacedKey.minecraft("overworld")).getSpawnLocation();
+            return world.getSpawnLocation();
         else
             return safeLocations.remove();
     }

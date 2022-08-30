@@ -32,7 +32,7 @@ public class PlayerListener implements Listener {
             Location location = plugin.generator().getAndRemove();
             event.setSpawnLocation(location);
 
-            Bukkit.getScheduler().runTaskLaterAsynchronously(SimpleRTP.instance(), () -> {
+            Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
                 event.getPlayer().sendMessage(MiniMessage.miniMessage().deserialize("<gradient:blue:aqua>You have been randomly teleported to: " + location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ() + "."));
             }, 5L);
         }

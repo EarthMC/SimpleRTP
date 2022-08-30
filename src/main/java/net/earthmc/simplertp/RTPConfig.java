@@ -10,11 +10,14 @@ import java.util.EnumSet;
 import java.util.Locale;
 
 public class RTPConfig {
+    private final SimpleRTP plugin;
     private final FileConfiguration config;
+
     private final EnumSet<Biome> blacklistedBiomes = EnumSet.noneOf(Biome.class);
     private final EnumSet<Material> blacklistedBlocks = EnumSet.noneOf(Material.class);
 
-    public RTPConfig(FileConfiguration config) {
+    public RTPConfig(SimpleRTP plugin, FileConfiguration config) {
+        this.plugin = plugin;
         this.config = config;
 
         for (String biomeName : config.getStringList("blacklisted-biomes")) {
@@ -36,7 +39,7 @@ public class RTPConfig {
                     Tag<Material> tag = (Tag<Material>) field.get(null);
                     blacklistedBlocks.addAll(tag.getValues());
                 } catch (NoSuchFieldException nsfe) {
-                    SimpleRTP.instance().getLogger().warning("Invalid material/tag name: " + materialName);
+                    plugin.getLogger().warning("Invalid material/tag name: " + materialName);
                 } catch (Exception ignored) {}
             }
         }
