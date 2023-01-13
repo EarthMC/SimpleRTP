@@ -6,18 +6,20 @@ import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class LocationGenerator {
     private final SimpleRTP plugin;
     private final Queue<Location> safeLocations = new ConcurrentLinkedQueue<>();
     private final World world;
-    private int runningTasks = 0;
+    private final AtomicInteger runningTasks = new AtomicInteger();
     private int taskID = -1;
 
     public LocationGenerator(SimpleRTP plugin, World world) {
@@ -27,23 +29,20 @@ public class LocationGenerator {
 
     public void start() {
         plugin.getLogger().info("Location generator has been started.");
+        runningTasks.set(0);
 
         taskID = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
-            if (safeLocations.size() + runningTasks >= 10)
+            if (safeLocations.size() + runningTasks.get() >= 10)
                 return;
 
-            runningTasks++;
-            try {
-                CompletableFuture<Location> loc = generateRandomLocation();
-                if (loc != null) {
-                    loc.thenAcceptAsync(location -> {
+            runningTasks.incrementAndGet();
+
+            this.generateRandomLocation()
+                    .thenAcceptAsync(location -> {
                         if (location != null)
                             safeLocations.add(location);
-                    });
-                }
-            } finally {
-                runningTasks--;
-            }
+                    })
+                    .whenComplete((r, e) -> runningTasks.decrementAndGet());
         }, 0, 2L).getTaskId();
     }
 
@@ -53,17 +52,17 @@ public class LocationGenerator {
         if (taskID != -1)
             Bukkit.getScheduler().cancelTask(taskID);
 
-        runningTasks = 0;
+        runningTasks.set(0);
         safeLocations.clear();
     }
 
-    @Nullable
+    @NotNull
     public CompletableFuture<Location> generateRandomLocation() {
         final int x = ThreadLocalRandom.current().nextInt(plugin.config().getMinX(), plugin.config().getMaxX());
         final int z = ThreadLocalRandom.current().nextInt(plugin.config().getMinZ(), plugin.config().getMaxZ());
 
         if (plugin.townyCompat() != null && !plugin.townyCompat().isWilderness(world, x, z))
-            return null;
+            return CompletableFuture.completedFuture(null);
 
         return world.getChunkAtAsync(x / 16, z / 16).thenApplyAsync(chunk -> {
             Block block = world.getHighestBlockAt(x, z);
