@@ -10,9 +10,13 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.spigotmc.event.player.PlayerSpawnLocationEvent;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+
 public class PlayerListener implements Listener {
 
     private final SimpleRTP plugin;
+    private static final MethodHandle HAD_INVALID_WORLD;
 
     public PlayerListener(SimpleRTP plugin) {
         this.plugin = plugin;
@@ -21,12 +25,14 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onSpawnLocationEvent(PlayerSpawnLocationEvent event) {
         boolean hadInvalidWorld = false;
-        try {
-            hadInvalidWorld = (boolean) Player.class.getMethod("hadInvalidWorld").invoke(event.getPlayer());
+        if (HAD_INVALID_WORLD != null) {
+            try {
+                hadInvalidWorld = (boolean) HAD_INVALID_WORLD.invoke(event.getPlayer());
 
-            if (hadInvalidWorld)
-                plugin.getLogger().info("Randomly teleporting " + event.getPlayer().getName() + " because their world was invalid.");
-        } catch (Exception ignored) {}
+                if (hadInvalidWorld)
+                    plugin.getLogger().info("Randomly teleporting " + event.getPlayer().getName() + " because their world was invalid.");
+            } catch (Throwable ignored) {}
+        }
 
         if (!event.getPlayer().hasPlayedBefore() || hadInvalidWorld) {
             Location location = plugin.generator().getAndRemove();
@@ -45,5 +51,15 @@ public class PlayerListener implements Listener {
             return;
 
         event.setRespawnLocation(plugin.generator().generateRespawnLocation(event.getPlayer().getLocation()));
+    }
+
+    static {
+        MethodHandle temp = null;
+        try {
+            //noinspection JavaReflectionMemberAccess
+            temp = MethodHandles.publicLookup().unreflect(Player.class.getMethod("hadInvalidWorld"));
+        } catch (Throwable ignored) {}
+
+        HAD_INVALID_WORLD = temp;
     }
 }
