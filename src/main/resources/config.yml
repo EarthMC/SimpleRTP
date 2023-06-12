@@ -13,14 +13,13 @@ blacklisted-biomes:
   - deep_frozen_ocean
   - lukewarm_ocean
   - deep_lukewarm_ocean
-  - deep_warm_ocean
   - cold_ocean
   - deep_cold_ocean
   - frozen_ocean
   - cold_ocean
   - lukewarm_ocean
   - warm_ocean
-  - snowy_tundra
+  - snowy_plains
   - river
 
 blacklisted-blocks:
