@@ -28,7 +28,7 @@ public class RTPCommand implements CommandExecutor {
                 if (!player.hasPermission("simplertp.command.rtp"))
                     player.sendMessage(Component.text("You do not have enough permissions to use this command.", NamedTextColor.RED));
                 else {
-                    Location location = plugin.generator().getAndRemove();
+                    final Location location = plugin.generator().getAndRemove();
                     player.teleportAsync(location).thenRun(() -> player.sendMessage(MiniMessage.miniMessage().deserialize("<gradient:blue:aqua>You have been randomly teleported to: " + location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ() + ".")));
                 }
             }
@@ -44,11 +44,11 @@ public class RTPCommand implements CommandExecutor {
                 if (!sender.hasPermission("simplertp.command.rtp.others"))
                     sender.sendMessage(Component.text("You do not have enough permission to use this command.", NamedTextColor.RED));
                 else if (Bukkit.getPlayerExact(args[0]) != null) {
-                    Player player = Bukkit.getPlayerExact(args[0]);
+                    final Player player = Bukkit.getPlayerExact(args[0]);
                     if (player == null)
                         return true;
 
-                    Location location = plugin.generator().getAndRemove();
+                    final Location location = plugin.generator().getAndRemove();
                     player.teleportAsync(location);
                     player.sendMessage(MiniMessage.miniMessage().deserialize("<gradient:blue:aqua>You have been randomly teleported to: " + location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ() + "."));
                 } else {

@@ -5,21 +5,21 @@ import net.earthmc.simplertp.compat.TownyCompat;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.Objects;
+
 public final class SimpleRTP extends JavaPlugin {
-    private RTPConfig config;
+    private final RTPConfig config = new RTPConfig(this);
     private LocationGenerator generator;
     private TownyCompat townyCompat;
 
     @Override
     public void onEnable() {
         this.saveDefaultConfig();
-        FileConfiguration configuration = getConfig();
-        this.config = new RTPConfig(this, configuration);
+        this.config.loadConfig();
 
-        World world = Bukkit.getWorld(NamespacedKey.minecraft("overworld"));
+        final World world = Bukkit.getWorld(NamespacedKey.minecraft("overworld"));
 
         if (world == null) {
             getLogger().severe("Unable to find a world with namespace minecraft:overworld, disabling.");
@@ -31,7 +31,7 @@ public final class SimpleRTP extends JavaPlugin {
         generator.start();
 
         Bukkit.getPluginManager().registerEvents(new PlayerListener(this), this);
-        Bukkit.getPluginCommand("rtp").setExecutor(new RTPCommand(this));
+        Objects.requireNonNull(getCommand("rtp")).setExecutor(new RTPCommand(this));
 
         if (Bukkit.getPluginManager().isPluginEnabled("Towny"))
             townyCompat = new TownyCompat();
@@ -52,8 +52,7 @@ public final class SimpleRTP extends JavaPlugin {
     }
 
     public void reload() {
-        this.reloadConfig();
-        this.config = new RTPConfig(this, getConfig());
+        this.config.loadConfig();
     }
 
     public TownyCompat townyCompat() {
