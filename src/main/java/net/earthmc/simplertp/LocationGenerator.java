@@ -63,7 +63,7 @@ public class LocationGenerator {
         if (plugin.townyCompat() != null && !plugin.townyCompat().isWilderness(world, x, z))
             return CompletableFuture.completedFuture(null);
 
-        return world.getChunkAtAsync(x / 16, z / 16).thenApplyAsync(chunk -> {
+        return world.getChunkAtAsync(x >> 4, z >> 4).thenApply(chunk -> {
             Block block = world.getHighestBlockAt(x, z);
 
             if (!isBlockSafe(block) || !isBlockAllowed(block))
