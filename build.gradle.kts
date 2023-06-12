@@ -6,7 +6,7 @@ plugins {
 repositories {
     mavenLocal()
     maven {
-        url = uri("https://papermc.io/repo/repository/maven-public/")
+        url = uri("https://repo.papermc.io/repository/maven-public/")
     }
 
     maven {
@@ -23,8 +23,8 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT")
-    compileOnly("com.palmergames.bukkit.towny:towny:0.97.5.11")
+    compileOnly("io.papermc.paper:paper-api:1.19.4-R0.1-SNAPSHOT")
+    compileOnly("com.palmergames.bukkit.towny:towny:0.99.1.0")
 }
 
 group = "net.earthmc"
