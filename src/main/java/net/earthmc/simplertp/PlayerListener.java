@@ -1,6 +1,5 @@
 package net.earthmc.simplertp;
 
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -27,7 +26,7 @@ public class PlayerListener implements Listener {
         boolean hadInvalidWorld = false;
         if (HAD_INVALID_WORLD != null) {
             try {
-                hadInvalidWorld = (boolean) HAD_INVALID_WORLD.invoke(event.getPlayer());
+                hadInvalidWorld = (boolean) HAD_INVALID_WORLD.invokeExact(event.getPlayer());
 
                 if (hadInvalidWorld)
                     plugin.getLogger().info("Randomly teleporting " + event.getPlayer().getName() + " because their world was invalid.");
@@ -39,7 +38,7 @@ public class PlayerListener implements Listener {
             event.setSpawnLocation(location);
 
             Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
-                event.getPlayer().sendMessage(MiniMessage.miniMessage().deserialize("<gradient:blue:aqua>You have been randomly teleported to: " + location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ() + "."));
+                event.getPlayer().sendRichMessage("<gradient:blue:aqua>You have been randomly teleported to: " + location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ() + ".");
             }, 5L);
         }
     }

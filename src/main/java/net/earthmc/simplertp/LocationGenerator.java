@@ -81,7 +81,7 @@ public class LocationGenerator {
 
                 final Block respawnBlock = deathLocation.getWorld().getHighestBlockAt(deathLocation.getBlockX() + xOffset, deathLocation.getBlockZ() + zOffset, HeightMap.MOTION_BLOCKING);
 
-                if (isBlockSafe(respawnBlock))
+                if (isBlockSafe(respawnBlock) && isBlockAllowed(respawnBlock))
                     return respawnBlock.getLocation().add(0.5, 1, 0.5);
             }
         }

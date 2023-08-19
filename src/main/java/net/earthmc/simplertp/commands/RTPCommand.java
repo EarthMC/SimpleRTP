@@ -3,7 +3,6 @@ package net.earthmc.simplertp.commands;
 import net.earthmc.simplertp.SimpleRTP;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
@@ -29,7 +28,7 @@ public class RTPCommand implements CommandExecutor {
                     player.sendMessage(Component.text("You do not have enough permissions to use this command.", NamedTextColor.RED));
                 else {
                     final Location location = plugin.generator().getAndRemove();
-                    player.teleportAsync(location).thenRun(() -> player.sendMessage(MiniMessage.miniMessage().deserialize("<gradient:blue:aqua>You have been randomly teleported to: " + location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ() + ".")));
+                    player.teleportAsync(location).thenRun(() -> player.sendRichMessage("<gradient:blue:aqua>You have been randomly teleported to: " + location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ() + "."));
                 }
             }
         } else {
@@ -50,7 +49,7 @@ public class RTPCommand implements CommandExecutor {
 
                     final Location location = plugin.generator().getAndRemove();
                     player.teleportAsync(location);
-                    player.sendMessage(MiniMessage.miniMessage().deserialize("<gradient:blue:aqua>You have been randomly teleported to: " + location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ() + "."));
+                    player.sendRichMessage("<gradient:blue:aqua>You have been randomly teleported to: " + location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ() + ".");
                 } else {
                     sender.sendMessage(Component.text("Invalid subcommand: '" + args[0] + "'.", NamedTextColor.RED));
                 }
