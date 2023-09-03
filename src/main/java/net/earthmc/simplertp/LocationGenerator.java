@@ -1,17 +1,17 @@
 package net.earthmc.simplertp;
 
-import org.bukkit.Bukkit;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.HeightMap;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class LocationGenerator {
@@ -19,7 +19,7 @@ public class LocationGenerator {
     private final Queue<Location> safeLocations = new ConcurrentLinkedQueue<>();
     private final World world;
     private final AtomicInteger runningTasks = new AtomicInteger();
-    private BukkitTask task = null;
+    private ScheduledTask task;
 
     public LocationGenerator(SimpleRTP plugin, World world) {
         this.plugin = plugin;
@@ -30,7 +30,7 @@ public class LocationGenerator {
         plugin.getLogger().info("Location generator has been started.");
         runningTasks.set(0);
 
-        task = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
+        task = plugin.getServer().getAsyncScheduler().runAtFixedRate(plugin, t -> {
             if (safeLocations.size() + runningTasks.get() >= 10)
                 return;
 
@@ -42,7 +42,7 @@ public class LocationGenerator {
                             safeLocations.add(location);
                     })
                     .whenComplete((r, e) -> runningTasks.decrementAndGet());
-        }, 0, 2L);
+        }, 1L, 40L, TimeUnit.MILLISECONDS);
     }
 
     public void stop() {
@@ -63,14 +63,20 @@ public class LocationGenerator {
         if (plugin.townyCompat() != null && !plugin.townyCompat().isWilderness(world, x, z))
             return CompletableFuture.completedFuture(null);
 
-        return world.getChunkAtAsync(x >> 4, z >> 4).thenApply(chunk -> {
-            final Block block = world.getHighestBlockAt(x, z);
+        final CompletableFuture<Location> future = new CompletableFuture<>();
 
-            if (!isBlockSafe(block) || !isBlockAllowed(block))
-                return null;
+        plugin.getServer().getRegionScheduler().run(plugin, world, x, z, task -> {
+            world.getChunkAtAsync(x >> 4, z >> 4).thenRun(() -> {
+                final Block block = world.getHighestBlockAt(x, z);
 
-            return block.getLocation().add(0.5, 1, 0.5);
+                if (!isBlockSafe(block) || !isBlockAllowed(block))
+                    future.complete(null);
+
+                future.complete(block.getLocation().add(0.5, 1, 0.5));
+            });
         });
+
+        return future;
     }
 
     public Location generateRespawnLocation(Location deathLocation) {

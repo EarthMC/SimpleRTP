@@ -1,6 +1,5 @@
 package net.earthmc.simplertp;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -11,6 +10,7 @@ import org.spigotmc.event.player.PlayerSpawnLocationEvent;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.util.concurrent.TimeUnit;
 
 public class PlayerListener implements Listener {
 
@@ -37,9 +37,9 @@ public class PlayerListener implements Listener {
             Location location = plugin.generator().getAndRemove();
             event.setSpawnLocation(location);
 
-            Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
+            plugin.getServer().getAsyncScheduler().runDelayed(plugin, task -> {
                 event.getPlayer().sendRichMessage("<gradient:blue:aqua>You have been randomly teleported to: " + location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ() + ".");
-            }, 5L);
+            }, 1L, TimeUnit.SECONDS);
         }
     }
 

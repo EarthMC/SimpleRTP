@@ -44,12 +44,16 @@ public class RTPCommand implements CommandExecutor {
                     sender.sendMessage(Component.text("You do not have enough permission to use this command.", NamedTextColor.RED));
                 else if (Bukkit.getPlayerExact(args[0]) != null) {
                     final Player player = Bukkit.getPlayerExact(args[0]);
-                    if (player == null)
+                    if (player == null) {
+                        sender.sendMessage(Component.text("Could not find a player named " + args[0] + ".", NamedTextColor.RED));
                         return true;
+                    }
 
                     final Location location = plugin.generator().getAndRemove();
-                    player.teleportAsync(location);
-                    player.sendRichMessage("<gradient:blue:aqua>You have been randomly teleported to: " + location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ() + ".");
+                    player.getScheduler().run(plugin, task -> {
+                        player.teleportAsync(location).thenRun(() -> player.sendRichMessage("<gradient:blue:aqua>You have been randomly teleported to: " + location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ() + "."));
+                        sender.sendMessage(Component.text("Randomly teleported " + player.getName() + " to " + location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ() + ".", NamedTextColor.GREEN));
+                    }, () -> {});
                 } else {
                     sender.sendMessage(Component.text("Invalid subcommand: '" + args[0] + "'.", NamedTextColor.RED));
                 }
