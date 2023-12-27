@@ -1,4 +1,4 @@
-package net.earthmc.simplertp.compat;
+package dev.warriorrr.simplertp.compat;
 
 import com.palmergames.bukkit.towny.TownyAPI;
 import com.palmergames.bukkit.towny.object.Resident;

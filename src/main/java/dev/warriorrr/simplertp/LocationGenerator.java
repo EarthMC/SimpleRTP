@@ -1,4 +1,4 @@
-package net.earthmc.simplertp;
+package dev.warriorrr.simplertp;
 
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.HeightMap;

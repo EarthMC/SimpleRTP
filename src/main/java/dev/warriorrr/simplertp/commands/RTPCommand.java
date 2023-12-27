@@ -1,6 +1,6 @@
-package net.earthmc.simplertp.commands;
+package dev.warriorrr.simplertp.commands;
 
-import net.earthmc.simplertp.SimpleRTP;
+import dev.warriorrr.simplertp.SimpleRTP;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;

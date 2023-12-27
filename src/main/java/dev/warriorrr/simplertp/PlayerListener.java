@@ -1,4 +1,4 @@
-package net.earthmc.simplertp;
+package dev.warriorrr.simplertp;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;

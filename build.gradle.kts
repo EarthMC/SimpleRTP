@@ -15,8 +15,8 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT")
-    compileOnly("com.palmergames.bukkit.towny:towny:0.99.1.0")
+    compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
+    compileOnly("com.palmergames.bukkit.towny:towny:0.100.0.0")
 }
 
 group = "net.earthmc"
@@ -28,17 +28,9 @@ tasks {
         options.release.set(17)
     }
 
-    javadoc {
-        options.encoding = Charsets.UTF_8.name()
-    }
-
     processResources {
         filteringCharset = Charsets.UTF_8.name()
 
         expand("version" to project.version)
     }
-}
-
-tasks.withType<JavaCompile> {
-    options.encoding = Charsets.UTF_8.name()
 }
