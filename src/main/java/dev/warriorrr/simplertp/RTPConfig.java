@@ -90,4 +90,12 @@ public class RTPConfig {
     public boolean isBlockAllowed(Material material) {
         return !blacklistedBlocks.contains(material);
     }
+
+    public boolean rtpFirstJoin() {
+        return plugin.getConfig().getBoolean("random-teleport-on-first-join", true);
+    }
+
+    public boolean respawnNearbyOnDeath() {
+        return plugin.getConfig().getBoolean("respawn-nearby-on-death", false);
+    }
 }
