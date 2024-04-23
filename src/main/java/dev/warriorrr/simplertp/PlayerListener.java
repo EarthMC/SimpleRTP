@@ -8,8 +8,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.spigotmc.event.player.PlayerSpawnLocationEvent;
 
-import java.util.concurrent.TimeUnit;
-
 public class PlayerListener implements Listener {
 
     private final SimpleRTP plugin;
