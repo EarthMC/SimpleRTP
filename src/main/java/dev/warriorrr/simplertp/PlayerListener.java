@@ -1,6 +1,7 @@
 package dev.warriorrr.simplertp;
 
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -25,9 +26,8 @@ public class PlayerListener implements Listener {
         final Location location = plugin.generator().getAndRemove();
         event.setSpawnLocation(location);
 
-        plugin.getServer().getAsyncScheduler().runDelayed(plugin, task -> {
-            event.getPlayer().sendRichMessage("<gradient:blue:aqua>You have been randomly teleported to: " + location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ() + ".");
-        }, 1L, TimeUnit.SECONDS);
+        final Player player = event.getPlayer();
+        player.getScheduler().runDelayed(plugin, task -> player.sendRichMessage("<gradient:blue:aqua>You have been randomly teleported to: " + location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ() + "."), () -> {}, 1L);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
