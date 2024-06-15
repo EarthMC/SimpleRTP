@@ -80,12 +80,20 @@ public class LocationGenerator {
     }
 
     public Location generateRespawnLocation(Location deathLocation) {
-        if (deathLocation.getWorld().getEnvironment() == World.Environment.NORMAL) {
+        final World world = deathLocation.getWorld();
+
+        if (world.getEnvironment() == World.Environment.NORMAL) {
             for (int i = 0; i < 50; i++) {
                 final int xOffset = ThreadLocalRandom.current().nextInt(40, 100) * (ThreadLocalRandom.current().nextBoolean() ? -1 : 1);
                 final int zOffset = ThreadLocalRandom.current().nextInt(40, 100) * (ThreadLocalRandom.current().nextBoolean() ? -1 : 1);
 
-                final Block respawnBlock = deathLocation.getWorld().getHighestBlockAt(deathLocation.getBlockX() + xOffset, deathLocation.getBlockZ() + zOffset, HeightMap.MOTION_BLOCKING);
+                final int blockX = deathLocation.getBlockX() + xOffset;
+                final int blockZ = deathLocation.getBlockZ() + zOffset;
+
+                if (!plugin.getServer().isOwnedByCurrentRegion(world, blockX, blockZ))
+                    continue;
+
+                final Block respawnBlock = deathLocation.getWorld().getHighestBlockAt(blockX, blockZ, HeightMap.MOTION_BLOCKING);
 
                 if (isBlockSafe(respawnBlock) && isBlockAllowed(respawnBlock))
                     return respawnBlock.getLocation().add(0.5, 1, 0.5);
