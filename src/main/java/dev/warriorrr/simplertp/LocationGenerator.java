@@ -90,7 +90,7 @@ public class LocationGenerator {
                 final int blockX = deathLocation.getBlockX() + xOffset;
                 final int blockZ = deathLocation.getBlockZ() + zOffset;
 
-                if (!plugin.getServer().isOwnedByCurrentRegion(world, blockX, blockZ))
+                if (!plugin.getServer().isOwnedByCurrentRegion(world, blockX >> 4, blockZ >> 4))
                     continue;
 
                 final Block respawnBlock = deathLocation.getWorld().getHighestBlockAt(blockX, blockZ, HeightMap.MOTION_BLOCKING);
