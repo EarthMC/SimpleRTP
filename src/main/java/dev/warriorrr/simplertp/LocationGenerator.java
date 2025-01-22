@@ -65,7 +65,7 @@ public class LocationGenerator {
 
         final CompletableFuture<Location> future = new CompletableFuture<>();
 
-        plugin.getServer().getRegionScheduler().run(plugin, world, x, z, task -> {
+        plugin.getServer().getRegionScheduler().run(plugin, world, x >> 4, z >> 4, task -> {
             world.getChunkAtAsync(x >> 4, z >> 4).thenRun(() -> {
                 final Block block = world.getHighestBlockAt(x, z);
 
