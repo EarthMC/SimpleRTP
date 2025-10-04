@@ -5,11 +5,6 @@ random-teleport-on-first-join: true
 
 respawn-nearby-on-death: false
 
-minX: -100
-maxX: 100
-minZ: -100
-maxZ: 100
-
 maxY: 128
 
 blacklisted-biomes:
@@ -32,3 +27,11 @@ blacklisted-biomes:
 
 blacklisted-blocks:
   - leaves
+
+regions:
+  default:
+    areas:
+      - minX: -100
+        maxX: 100
+        minZ: -100
+        maxZ: 100

@@ -5,6 +5,8 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.Tag;
 import org.bukkit.block.Biome;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.*;
 
@@ -25,7 +27,9 @@ public class RTPConfig {
         blacklistedBiomes.clear();
         plugin.reloadConfig();
 
-        blocksNeededPerUse = plugin.getConfig().getInt("surfaceAreaPerUse");
+        final FileConfiguration config = plugin.getConfig();
+
+        blocksNeededPerUse = config.getInt("surfaceAreaPerUse");
 
         for (final String biomeName : plugin.getConfig().getStringList("blacklisted-biomes")) {
             final NamespacedKey key = NamespacedKey.fromString(biomeName.toLowerCase(Locale.ROOT));
@@ -67,29 +71,37 @@ public class RTPConfig {
             }
         }
 
-        for (final String region : plugin.getConfig().getStringList("allowed-regions")) { // E.g. 100,50,45,20;minX,maxX,minZ,maxZ
-            for (String coords : region.split(";")) {
-                String[] coord = coords.split(",");
-                int minX, maxX, minZ, maxZ;
-                try {
-                    minX = Integer.parseInt(coord[0]);
-                    maxX = Integer.parseInt(coord[1]);
-                    minZ = Integer.parseInt(coord[2]);
-                    maxZ = Integer.parseInt(coord[3]);
-                } catch (NumberFormatException | IndexOutOfBoundsException e) {
-                    plugin.getLogger().warning("Could not parse %s into integers".formatted(coords) + "\n" + e.getMessage());
-                    continue;
-                }
-                regions.put(new Region(minX, maxX, minZ, maxZ), 0);
+        ConfigurationSection regions = config.getConfigurationSection("regions");
+        if (regions == null) {
+            regions = config.createSection("regions");
+        }
+
+        for (final String regionName : regions.getKeys(false)) {
+            final ConfigurationSection regionConfig = regions.getConfigurationSection(regionName);
+
+            final List<Map<?, ?>> rawAreas = regionConfig.getMapList("areas");
+            final List<Area> areas = new ArrayList<>();
+
+            for (final Map<?, ?> area : rawAreas) {
+                areas.add(new Area(
+                    (int) area.get("minX"),
+                    (int) area.get("maxX"),
+                    (int) area.get("minZ"),
+                    (int) area.get("minZ")
+                ));
             }
+
+            this.regions.put(new Region(regionName, areas), 0);
         }
     }
 
-    public record Region(int minX, int maxX, int minZ, int maxZ) {
+    public record Region(String name, List<Area> areas) {
         public int maxUses() {
-            return ((maxX - minX) * (maxZ - minZ)) / blocksNeededPerUse; // For every 1000 blocks of surface area, region can be used once.
+            return 1; // ((maxX - minX) * (maxZ - minZ)) / blocksNeededPerUse; // For every 1000 blocks of surface area, region can be used once.
         }
     }
+
+    public record Area(int minX, int maxX, int minZ, int maxZ) {}
 
     public Region getNextRegion() {
         Iterator<Region> it = regions.keySet().iterator();
