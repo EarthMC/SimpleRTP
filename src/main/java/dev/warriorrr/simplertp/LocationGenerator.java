@@ -1,5 +1,6 @@
 package dev.warriorrr.simplertp;
 
+import dev.warriorrr.simplertp.compat.TownyCompat;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.HeightMap;
 import org.bukkit.Location;
@@ -57,24 +58,25 @@ public class LocationGenerator {
 
     @NotNull
     public CompletableFuture<Location> generateRandomLocation() {
-        final int x = ThreadLocalRandom.current().nextInt(plugin.config().getMinX(), plugin.config().getMaxX());
-        final int z = ThreadLocalRandom.current().nextInt(plugin.config().getMinZ(), plugin.config().getMaxZ());
+        RTPConfig.Region region = plugin.config().getNextRegion();
+        if (region == null) return CompletableFuture.completedFuture(null);
 
-        if (plugin.townyCompat() != null && !plugin.townyCompat().isWilderness(world, x, z))
+        final int x = ThreadLocalRandom.current().nextInt(region.minX(), region.maxX());
+        final int z = ThreadLocalRandom.current().nextInt(region.minZ(), region.maxZ());
+
+        if (TownyCompat.getEnabled() && !TownyCompat.isWilderness(world, x, z))
             return CompletableFuture.completedFuture(null);
 
         final CompletableFuture<Location> future = new CompletableFuture<>();
 
-        plugin.getServer().getRegionScheduler().run(plugin, world, x >> 4, z >> 4, task -> {
-            world.getChunkAtAsync(x >> 4, z >> 4).thenRun(() -> {
-                final Block block = world.getHighestBlockAt(x, z);
+        plugin.getServer().getRegionScheduler().run(plugin, world, x >> 4, z >> 4, task -> world.getChunkAtAsync(x >> 4, z >> 4).thenRun(() -> {
+            final Block block = world.getHighestBlockAt(x, z);
 
-                if (!isBlockSafe(block) || !isBlockAllowed(block))
-                    future.complete(null);
+            if (!isBlockSafe(block) || !isBlockAllowed(block))
+                future.complete(null);
 
-                future.complete(block.getLocation().add(0.5, 1, 0.5));
-            });
-        });
+            future.complete(block.getLocation().add(0.5, 1, 0.5));
+        }));
 
         return future;
     }

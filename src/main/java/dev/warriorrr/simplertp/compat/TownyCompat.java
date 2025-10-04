@@ -9,22 +9,21 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 public class TownyCompat {
-    public boolean isWilderness(Location location) {
-        return TownyAPI.getInstance().isWilderness(location);
+    private static boolean enabled;
+
+    public static void enable() {
+        enabled = true;
+    }
+    public static boolean getEnabled() {
+        return enabled;
     }
 
-    public boolean isWilderness(World world, int x, int z) {
+    public static boolean isWilderness(World world, int x, int z) {
         return TownyAPI.getInstance().isWilderness(WorldCoord.parseWorldCoord(world.getName(), x, z));
     }
 
-    public boolean hasTown(Player player) {
-        Resident resident = TownyAPI.getInstance().getResident(player);
-
-        return resident != null && resident.hasTown();
-    }
-
-    public boolean handlesRespawn(Player player, Location deathLocation) {
-        if (!TownySettings.isTownRespawning() || !hasTown(player))
+    public static boolean handlesRespawn(Player player, Location deathLocation) {
+        if (!TownySettings.isTownRespawning() || TownyAPI.getInstance().getTown(player) == null)
             return false;
 
         if (TownySettings.isTownRespawningInOtherWorlds())
