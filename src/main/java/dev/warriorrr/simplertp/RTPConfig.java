@@ -8,7 +8,15 @@ import org.bukkit.block.Biome;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
-import java.util.*;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Locale;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class RTPConfig {
     private final SimpleRTP plugin;
@@ -16,7 +24,6 @@ public class RTPConfig {
     private final Set<Biome> blacklistedBiomes = new HashSet<>();
     private final Set<Material> blacklistedBlocks = new HashSet<>();
     private final Map<Region, Integer> regions = new HashMap<>();
-    private static int blocksNeededPerUse = 1000;
 
     public RTPConfig(SimpleRTP plugin) {
         this.plugin = plugin;
@@ -28,8 +35,6 @@ public class RTPConfig {
         plugin.reloadConfig();
 
         final FileConfiguration config = plugin.getConfig();
-
-        blocksNeededPerUse = config.getInt("surfaceAreaPerUse");
 
         for (final String biomeName : plugin.getConfig().getStringList("blacklisted-biomes")) {
             final NamespacedKey key = NamespacedKey.fromString(biomeName.toLowerCase(Locale.ROOT));
@@ -90,27 +95,58 @@ public class RTPConfig {
                     (int) area.get("minZ")
                 ));
             }
+            if (areas.isEmpty()) return;
 
             this.regions.put(new Region(regionName, areas), 0);
         }
     }
 
     public record Region(String name, List<Area> areas) {
-        public int maxUses() {
-            return 1; // ((maxX - minX) * (maxZ - minZ)) / blocksNeededPerUse; // For every 1000 blocks of surface area, region can be used once.
+        public Area getRandomArea() {
+            int totalWeight = 0;
+            for (Area a : areas) {
+                totalWeight += a.size();
+            }
+
+            int random = ThreadLocalRandom.current().nextInt(totalWeight);
+            int c = 0;
+            for (Area a : areas) {
+                c += a.size();
+                if (c > random) return a;
+            }
+            return areas.getFirst();
+        }
+        public int size() {
+            AtomicInteger size = new AtomicInteger();
+            areas.forEach(area -> size.addAndGet(area.size()));
+            return size.get();
         }
     }
 
-    public record Area(int minX, int maxX, int minZ, int maxZ) {}
-
-    public Region getNextRegion() {
-        Iterator<Region> it = regions.keySet().iterator();
-        Region next = it.next();
-        while (next.maxUses() <= regions.get(next)) {
-            regions.remove(next);
-            next = it.next();
+    public record Area(int minX, int maxX, int minZ, int maxZ) {
+        public int size() {
+            return (maxX - minX + 1) * (maxZ - minZ + 1);
         }
-        return next;
+    }
+
+    public Region getRandomRegion() {
+        var regionList = regions.keySet().stream().toList();
+        int totalWeight = 0;
+        for (Region r : regionList) {
+            totalWeight += r.size();
+        }
+
+        int random = ThreadLocalRandom.current().nextInt(totalWeight);
+        int c = 0;
+        for (Region r : regionList) {
+            c += r.size();
+            if (c > random) return r;
+        }
+        return regionList.getFirst();
+    }
+
+    public List<Region> getRegions() {
+        return new ArrayList<>(regions.keySet());
     }
 
     public int getMaxY() {

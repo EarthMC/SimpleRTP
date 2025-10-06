@@ -7,8 +7,9 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadLocalRandom;
@@ -18,6 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class LocationGenerator {
     private final SimpleRTP plugin;
     private final Queue<Location> safeLocations = new ConcurrentLinkedQueue<>();
+    private final Map<RTPConfig.Region, List<Location>> regionMap = new HashMap<>();
     private final World world;
     private final AtomicInteger runningTasks = new AtomicInteger();
     private ScheduledTask task;
@@ -32,15 +34,23 @@ public class LocationGenerator {
         runningTasks.set(0);
 
         task = plugin.getServer().getAsyncScheduler().runAtFixedRate(plugin, t -> {
-            if (safeLocations.size() + runningTasks.get() >= 10)
+            if (runningTasks.get() >= 10)
                 return;
 
-            runningTasks.incrementAndGet();
+            RTPConfig.Region region = plugin.config().getRandomRegion();
+            if (region == null) return;
+            if (regionMap.get(region) == null || regionMap.get(region).size() >= 10) return;
+            RTPConfig.Area area = region.getRandomArea();
+            if (area == null) return;
 
-            this.generateRandomLocation()
+            runningTasks.incrementAndGet();
+            this.generateRandomLocation(area)
                     .thenAccept(location -> {
-                        if (location != null)
+                        if (location != null) {
                             safeLocations.add(location);
+                            List<Location> areas = regionMap.computeIfAbsent(region, list -> new ArrayList<>());
+                            areas.add(location);
+                        }
                     })
                     .whenComplete((r, e) -> runningTasks.decrementAndGet());
         }, 1L, 40L, TimeUnit.MILLISECONDS);
@@ -57,15 +67,13 @@ public class LocationGenerator {
     }
 
     @NotNull
-    public CompletableFuture<Location> generateRandomLocation() {
-        RTPConfig.Region region = plugin.config().getNextRegion();
-        if (region == null) return CompletableFuture.completedFuture(null);
+    public CompletableFuture<Location> generateRandomLocation(RTPConfig.Area area) {
+        final int x = ThreadLocalRandom.current().nextInt(area.minX(), area.maxX());
+        final int z = ThreadLocalRandom.current().nextInt(area.minZ(), area.maxZ());
 
-        final int x = ThreadLocalRandom.current().nextInt(region.minX(), region.maxX());
-        final int z = ThreadLocalRandom.current().nextInt(region.minZ(), region.maxZ());
-
-        if (TownyCompat.getEnabled() && !TownyCompat.isWilderness(world, x, z))
+        if (TownyCompat.getEnabled() && !TownyCompat.isWilderness(world, x, z)) {
             return CompletableFuture.completedFuture(null);
+        }
 
         final CompletableFuture<Location> future = new CompletableFuture<>();
 
@@ -92,13 +100,13 @@ public class LocationGenerator {
                 final int blockX = deathLocation.getBlockX() + xOffset;
                 final int blockZ = deathLocation.getBlockZ() + zOffset;
 
-                if (!plugin.getServer().isOwnedByCurrentRegion(world, blockX >> 4, blockZ >> 4))
-                    continue;
+                if (!plugin.getServer().isOwnedByCurrentRegion(world, blockX >> 4, blockZ >> 4)) continue;
 
                 final Block respawnBlock = deathLocation.getWorld().getHighestBlockAt(blockX, blockZ, HeightMap.MOTION_BLOCKING);
 
-                if (isBlockSafe(respawnBlock) && isBlockAllowed(respawnBlock))
+                if (isBlockSafe(respawnBlock) && isBlockAllowed(respawnBlock)) {
                     return respawnBlock.getLocation().add(0.5, 1, 0.5);
+                }
             }
         }
 
@@ -118,9 +126,17 @@ public class LocationGenerator {
     }
 
     public Location getAndRemove() {
-        if (safeLocations.isEmpty())
+        if (safeLocations.isEmpty()) {
+            plugin.getLogger().warning("Safe locations is empty! Falling back to world spawn.");
             return world.getSpawnLocation();
-        else
+        } else {
             return safeLocations.remove();
+        }
+    }
+
+    public @Nullable Location getSpawnForRegion(RTPConfig.Region region) {
+        List<Location> locations = regionMap.get(region);
+        if (locations == null || locations.isEmpty()) return null;
+        return locations.removeFirst();
     }
 }

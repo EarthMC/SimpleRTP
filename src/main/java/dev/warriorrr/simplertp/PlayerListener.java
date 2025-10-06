@@ -23,7 +23,6 @@ public class PlayerListener implements Listener {
             return;
 
         final Location location = plugin.generator().getAndRemove();
-        if (location == null) return;
         event.setSpawnLocation(location);
 
         final Player player = event.getPlayer();
