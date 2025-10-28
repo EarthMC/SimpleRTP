@@ -35,7 +35,7 @@ public class PlayerListener implements Listener {
             return;
 
         // Return if the player is already being teleported to a respawn anchor or bed, or the respawn is already being handled by towny
-        if (event.isAnchorSpawn() || event.isBedSpawn() || (TownyCompat.getEnabled() && TownyCompat.handlesRespawn(event.getPlayer(), event.getPlayer().getLocation())))
+        if (event.isAnchorSpawn() || event.isBedSpawn() || TownyCompat.handlesRespawn(event.getPlayer(), event.getPlayer().getLocation()))
             return;
 
         event.setRespawnLocation(plugin.generator().generateRespawnLocation(event.getPlayer().getLocation()));

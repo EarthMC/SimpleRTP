@@ -12,6 +12,7 @@ import java.util.Objects;
 public final class SimpleRTP extends JavaPlugin {
     private final RTPConfig config = new RTPConfig(this);
     private LocationGenerator generator;
+    private TeleportHandler teleportHandler;
 
     @Override
     public void onEnable() {
@@ -29,8 +30,10 @@ public final class SimpleRTP extends JavaPlugin {
         this.generator = new LocationGenerator(this, world);
         generator.start();
 
+        teleportHandler = new TeleportHandler(this);
+        Bukkit.getPluginManager().registerEvents(teleportHandler, this);
         Bukkit.getPluginManager().registerEvents(new PlayerListener(this), this);
-        Objects.requireNonNull(getCommand("rtp")).setExecutor(new RTPCommand(this));
+        Objects.requireNonNull(getCommand("rtp")).setExecutor(new RTPCommand(this, teleportHandler));
 
         if (Bukkit.getPluginManager().isPluginEnabled("Towny")) {
             TownyCompat.enable();
@@ -53,5 +56,9 @@ public final class SimpleRTP extends JavaPlugin {
 
     public void reload() {
         this.config.loadConfig();
+    }
+
+    public TeleportHandler teleportHandler() {
+        return teleportHandler;
     }
 }

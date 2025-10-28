@@ -92,7 +92,7 @@ public class RTPConfig {
                     (int) area.get("minX"),
                     (int) area.get("maxX"),
                     (int) area.get("minZ"),
-                    (int) area.get("minZ")
+                    (int) area.get("maxZ")
                 ));
             }
             if (areas.isEmpty()) return;
@@ -114,7 +114,7 @@ public class RTPConfig {
                 c += a.size();
                 if (c > random) return a;
             }
-            return areas.getFirst();
+            return areas.get(0);
         }
         public int size() {
             AtomicInteger size = new AtomicInteger();
@@ -142,7 +142,7 @@ public class RTPConfig {
             c += r.size();
             if (c > random) return r;
         }
-        return regionList.getFirst();
+        return regionList.get(0);
     }
 
     public List<Region> getRegions() {

@@ -33,13 +33,24 @@ public class LocationGenerator {
         plugin.getLogger().info("Location generator has been started.");
         runningTasks.set(0);
 
+        if (safeLocations.size() < 25) {
+            quickPopulate();
+        } else {
+            regularLoop();
+        }
+    }
+
+    public void quickPopulate() {
         task = plugin.getServer().getAsyncScheduler().runAtFixedRate(plugin, t -> {
-            if (runningTasks.get() >= 10)
-                return;
+            if (safeLocations.size() > 25) {
+                t.cancel();
+                regularLoop();
+            }
+            if (runningTasks.get() >= 10) return;
 
             RTPConfig.Region region = plugin.config().getRandomRegion();
             if (region == null) return;
-            if (regionMap.get(region) == null || regionMap.get(region).size() >= 10) return;
+            if (regionMap.get(region) != null && regionMap.get(region).size() >= 10) return;
             RTPConfig.Area area = region.getRandomArea();
             if (area == null) return;
 
@@ -48,12 +59,33 @@ public class LocationGenerator {
                     .thenAccept(location -> {
                         if (location != null) {
                             safeLocations.add(location);
-                            List<Location> areas = regionMap.computeIfAbsent(region, list -> new ArrayList<>());
-                            areas.add(location);
+                            regionMap.computeIfAbsent(region, list -> new ArrayList<>()).add(location);
                         }
                     })
                     .whenComplete((r, e) -> runningTasks.decrementAndGet());
-        }, 1L, 40L, TimeUnit.MILLISECONDS);
+        }, 1L, 50, TimeUnit.MILLISECONDS);
+    }
+
+    public void regularLoop() {
+        task = plugin.getServer().getAsyncScheduler().runAtFixedRate(plugin, t -> {
+            if (runningTasks.get() >= 10) return;
+
+            RTPConfig.Region region = plugin.config().getRandomRegion();
+            if (region == null) return;
+            if (regionMap.get(region) != null && regionMap.get(region).size() >= 10) return;
+            RTPConfig.Area area = region.getRandomArea();
+            if (area == null) return;
+
+            runningTasks.incrementAndGet();
+            this.generateRandomLocation(area)
+                    .thenAccept(location -> {
+                        if (location != null) {
+                            safeLocations.add(location);
+                            regionMap.computeIfAbsent(region, list -> new ArrayList<>()).add(location);
+                        }
+                    })
+                    .whenComplete((r, e) -> runningTasks.decrementAndGet());
+        }, 1L, 50, TimeUnit.MILLISECONDS);
     }
 
     public void stop() {
@@ -64,6 +96,13 @@ public class LocationGenerator {
 
         runningTasks.set(0);
         safeLocations.clear();
+        regionMap.clear();
+    }
+
+    public void reload() {
+        safeLocations.clear();
+        regionMap.clear();
+        // Allow locations to be repopulated with newly configured regions
     }
 
     @NotNull
@@ -71,7 +110,7 @@ public class LocationGenerator {
         final int x = ThreadLocalRandom.current().nextInt(area.minX(), area.maxX());
         final int z = ThreadLocalRandom.current().nextInt(area.minZ(), area.maxZ());
 
-        if (TownyCompat.getEnabled() && !TownyCompat.isWilderness(world, x, z)) {
+        if (!TownyCompat.isWilderness(world, x, z)) {
             return CompletableFuture.completedFuture(null);
         }
 
@@ -80,8 +119,9 @@ public class LocationGenerator {
         plugin.getServer().getRegionScheduler().run(plugin, world, x >> 4, z >> 4, task -> world.getChunkAtAsync(x >> 4, z >> 4).thenRun(() -> {
             final Block block = world.getHighestBlockAt(x, z);
 
-            if (!isBlockSafe(block) || !isBlockAllowed(block))
+            if (!isBlockSafe(block) || !isBlockAllowed(block)) {
                 future.complete(null);
+            }
 
             future.complete(block.getLocation().add(0.5, 1, 0.5));
         }));
@@ -137,6 +177,14 @@ public class LocationGenerator {
     public @Nullable Location getSpawnForRegion(RTPConfig.Region region) {
         List<Location> locations = regionMap.get(region);
         if (locations == null || locations.isEmpty()) return null;
-        return locations.removeFirst();
+        return locations.remove(0);
+    }
+
+    public int getTasksSize() {
+        return runningTasks.get();
+    }
+
+    public int getLocationsSize() {
+        return safeLocations.size();
     }
 }
