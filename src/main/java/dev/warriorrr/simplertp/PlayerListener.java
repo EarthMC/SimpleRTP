@@ -1,5 +1,7 @@
 package dev.warriorrr.simplertp;
 
+import dev.warriorrr.simplertp.compat.TownyCompat;
+import dev.warriorrr.simplertp.model.GeneratedLocation;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -21,11 +23,12 @@ public class PlayerListener implements Listener {
         if (event.getPlayer().hasPlayedBefore() || !plugin.config().rtpFirstJoin())
             return;
 
-        final Location location = plugin.generator().getAndRemove();
+        final GeneratedLocation generatedLoc = plugin.generator().getAndRemove();
+        final Location location = generatedLoc.location();
         event.setSpawnLocation(location);
 
         final Player player = event.getPlayer();
-        player.getScheduler().runDelayed(plugin, task -> player.sendRichMessage("<gradient:blue:aqua>You have been randomly teleported to: " + location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ() + "."), () -> {}, 1L);
+        player.getScheduler().runDelayed(plugin, task -> player.sendRichMessage("<gradient:blue:aqua>You have been randomly teleported to: " + location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ() + " in " + generatedLoc.region().name() + "."), () -> {}, 1L);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -34,7 +37,7 @@ public class PlayerListener implements Listener {
             return;
 
         // Return if the player is already being teleported to a respawn anchor or bed, or the respawn is already being handled by towny
-        if (event.isAnchorSpawn() || event.isBedSpawn() || (plugin.townyCompat() != null && plugin.townyCompat().handlesRespawn(event.getPlayer(), event.getPlayer().getLocation())))
+        if (event.isAnchorSpawn() || event.isBedSpawn() || TownyCompat.handlesRespawn(event.getPlayer(), event.getPlayer().getLocation()))
             return;
 
         event.setRespawnLocation(plugin.generator().generateRespawnLocation(event.getPlayer().getLocation()));

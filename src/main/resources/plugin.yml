@@ -21,8 +21,12 @@ permissions:
     children:
       simplertp.command.rtp.others: true
       simplertp.command.rtp.reload: true
+      simplertp.command.rtp.debug: true
 
   simplertp.command.rtp.others:
     default: op
     children:
       simplertp.command.rtp: true
+
+  simplertp.teleport.nowarmup:
+    default: false
