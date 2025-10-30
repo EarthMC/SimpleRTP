@@ -1,5 +1,7 @@
 package dev.warriorrr.simplertp;
 
+import dev.warriorrr.simplertp.model.Area;
+import dev.warriorrr.simplertp.model.Region;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
@@ -7,7 +9,10 @@ import org.bukkit.Tag;
 import org.bukkit.block.Biome;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.UnmodifiableView;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.HashMap;
@@ -16,14 +21,16 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class RTPConfig {
     private final SimpleRTP plugin;
 
     private final Set<Biome> blacklistedBiomes = new HashSet<>();
     private final Set<Material> blacklistedBlocks = new HashSet<>();
-    private final Map<Region, Integer> regions = new HashMap<>();
+
+    private final Map<String, Region> regions = new HashMap<>();
+    private final List<Region> regionsList = new ArrayList<>();
+    private final List<Region> regionsView = Collections.unmodifiableList(regionsList);
 
     public RTPConfig(SimpleRTP plugin) {
         this.plugin = plugin;
@@ -97,56 +104,25 @@ public class RTPConfig {
             }
             if (areas.isEmpty()) return;
 
-            this.regions.put(new Region(regionName, areas), 0);
+            final Region region = new Region(regionName, areas);
+            this.regions.put(regionName.toLowerCase(Locale.ROOT), region);
         }
-    }
 
-    public record Region(String name, List<Area> areas) {
-        public Area getRandomArea() {
-            int totalWeight = 0;
-            for (Area a : areas) {
-                totalWeight += a.size();
-            }
-
-            int random = ThreadLocalRandom.current().nextInt(totalWeight);
-            int c = 0;
-            for (Area a : areas) {
-                c += a.size();
-                if (c > random) return a;
-            }
-            return areas.get(0);
-        }
-        public int size() {
-            AtomicInteger size = new AtomicInteger();
-            areas.forEach(area -> size.addAndGet(area.size()));
-            return size.get();
-        }
-    }
-
-    public record Area(int minX, int maxX, int minZ, int maxZ) {
-        public int size() {
-            return (maxX - minX + 1) * (maxZ - minZ + 1);
-        }
+        this.regionsList.clear();
+        this.regionsList.addAll(this.regions.values());
     }
 
     public Region getRandomRegion() {
-        var regionList = regions.keySet().stream().toList();
-        int totalWeight = 0;
-        for (Region r : regionList) {
-            totalWeight += r.size();
-        }
-
-        int random = ThreadLocalRandom.current().nextInt(totalWeight);
-        int c = 0;
-        for (Region r : regionList) {
-            c += r.size();
-            if (c > random) return r;
-        }
-        return regionList.get(0);
+        return this.regionsList.get(ThreadLocalRandom.current().nextInt(this.regionsList.size()));
     }
 
+    @UnmodifiableView
     public List<Region> getRegions() {
-        return new ArrayList<>(regions.keySet());
+        return this.regionsView;
+    }
+
+    public @Nullable Region getRegionByName(String regionName) {
+        return regions.get(regionName.toLowerCase(Locale.ROOT));
     }
 
     public int getMaxY() {

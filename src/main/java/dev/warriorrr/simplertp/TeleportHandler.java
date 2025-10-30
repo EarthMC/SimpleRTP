@@ -1,5 +1,6 @@
 package dev.warriorrr.simplertp;
 
+import dev.warriorrr.simplertp.model.Region;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -23,12 +24,19 @@ public class TeleportHandler implements Listener {
         this.plugin = plugin;
     }
 
-    public void addTeleport(Player player, Location location) {
-        ScheduledTask task = plugin.getServer().getRegionScheduler().runDelayed(plugin, location,
-                t -> player.teleportAsync(location).thenRun(() -> {
-            player.sendRichMessage("<gradient:blue:aqua>You have been randomly teleported to: " + location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ() + ".");
+    public void addTeleport(Player player, Region region, Location location) {
+        final Runnable teleport = () -> player.teleportAsync(location).thenRun(() -> {
+            player.sendRichMessage("<gradient:blue:aqua>You have been randomly teleported to: " + location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ() + " in " + region.name() + ".");
             teleports.remove(player.getUniqueId());
-        }), 3 * 20);
+        });
+
+        if (player.hasPermission("simplertp.teleport.nowarmup")) {
+            teleport.run();
+            return;
+        }
+
+        ScheduledTask task = plugin.getServer().getRegionScheduler().runDelayed(plugin, location, t -> teleport.run(), 3 * 20);
+
         teleports.put(player.getUniqueId(), task);
     }
 
@@ -42,7 +50,7 @@ public class TeleportHandler implements Listener {
         ScheduledTask task = teleports.remove(player.getUniqueId());
         if (task != null && !task.isCancelled()) {
             task.cancel();
-            player.sendMessage(Component.text("Teleportation cancelled due to movement.", NamedTextColor.DARK_RED));
+            player.sendMessage(Component.text("Teleportation cancelled due to taking damage.", NamedTextColor.DARK_RED));
         }
     }
 

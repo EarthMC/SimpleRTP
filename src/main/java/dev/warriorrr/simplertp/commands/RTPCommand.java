@@ -1,8 +1,9 @@
 package dev.warriorrr.simplertp.commands;
 
-import dev.warriorrr.simplertp.RTPConfig;
 import dev.warriorrr.simplertp.SimpleRTP;
 import dev.warriorrr.simplertp.TeleportHandler;
+import dev.warriorrr.simplertp.model.GeneratedLocation;
+import dev.warriorrr.simplertp.model.Region;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
@@ -16,7 +17,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class RTPCommand implements TabExecutor {
@@ -39,22 +39,16 @@ public class RTPCommand implements TabExecutor {
                 sender.sendMessage(Component.text("This command cannot be used by console! See also: /rtp reload, /rtp player {name}", NamedTextColor.RED));
                 return true;
             }
-            final Location location = plugin.generator().getAndRemove();
-            if (location == null) {
-                player.sendMessage(Component.text("Could not find a suitable location.").color(NamedTextColor.RED));
-                return true;
-            }
+
+            final GeneratedLocation location = plugin.generator().getAndRemove();
+
             if (teleportHandler.hasTeleport(player)) {
                 player.sendMessage(Component.text("You already have a pending teleport!", NamedTextColor.RED));
                 return true;
             }
+
             player.sendRichMessage("<gradient:blue:aqua>Waiting to teleport...");
-            teleportHandler.addTeleport(player, location);
-            return true;
-        }
-        final Location location = plugin.generator().getAndRemove();
-        if (location == null) {
-            sender.sendMessage(Component.text("Could not find a suitable location.").color(NamedTextColor.RED));
+            teleportHandler.addTeleport(player, location.region(), location.location());
             return true;
         }
 
@@ -89,60 +83,73 @@ public class RTPCommand implements TabExecutor {
                     sender.sendMessage(Component.text("You do not have permission to use this command.", NamedTextColor.RED));
                     return true;
                 }
+
                 if (args.length < 2) {
                     sender.sendMessage(Component.text("Usage: /rtp player {name}", NamedTextColor.RED));
                     return true;
                 }
+
                 Player player = Bukkit.getPlayer(args[0]);
                 if (player == null) {
                     sender.sendMessage(Component.text("Player not found.", NamedTextColor.RED));
                     return true;
                 }
+
                 if (teleportHandler.hasTeleport(player)) {
                     sender.sendMessage(Component.text("Player already has a pending teleport!", NamedTextColor.RED));
                     return true;
+
                 }
                 player.sendRichMessage("<gradient:blue:aqua>Waiting to teleport...");
-                teleportHandler.addTeleport(player, location);
+
+                final GeneratedLocation generatedLoc = plugin.generator().getAndRemove();
+                final Location location = generatedLoc.location();
+
+                teleportHandler.addTeleport(player, generatedLoc.region(), location);
                 sender.sendMessage(Component.text("Randomly teleported " + player.getName() + " to " + location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ() + ".", NamedTextColor.GREEN));
             }
-            case "region" -> {
-                if (!(sender instanceof Player player)) {
-                    sender.sendMessage(Component.text("This command cannot be used by console! See also: /rtp reload, /rtp player {name}", NamedTextColor.RED));
-                    return true;
-                }
-                if (!sender.hasPermission("simplertp.command.rtp.region")) {
+            case "debug" -> {
+                if (!sender.hasPermission("simplertp.command.rtp.debug")) {
                     sender.sendMessage(Component.text("You do not have permission to use this command.", NamedTextColor.RED));
                     return true;
                 }
-                if (args.length < 2) {
-                    sender.sendMessage(Component.text("Usage: /rtp region {name}", NamedTextColor.RED));
-                    return true;
-                }
-                String name = args[1];
-                List<RTPConfig.Region> found = plugin.config().getRegions().stream().filter(r -> r.name().equalsIgnoreCase(name)).collect(Collectors.toCollection(ArrayList::new));
-                if (found.isEmpty() || found.get(0) == null) {
-                    sender.sendMessage(Component.text("Could not find region with that name.", NamedTextColor.RED));
-                    return true;
-                }
-                RTPConfig.Region region = found.get(0);
-                Location regionLoc = plugin.generator().getSpawnForRegion(region);
-                if (regionLoc == null) {
-                    sender.sendMessage(Component.text("Could not find a suitable spawn", NamedTextColor.RED));
-                    return true;
-                }
-                if (teleportHandler.hasTeleport(player)) {
-                    player.sendMessage(Component.text("You already have a pending teleport!", NamedTextColor.RED));
-                    return true;
-                }
-                player.sendRichMessage("<gradient:blue:aqua>Waiting to teleport...");
-                teleportHandler.addTeleport(player, location);
-            }
-            case "debug" -> {
+
                 sender.sendRichMessage("<gradient:blue:aqua>SimpleRTP Info");
                 sender.sendRichMessage("<blue>- Regions: <aqua>%d".formatted(plugin.config().getRegions().size()));
                 sender.sendRichMessage("<blue>- Locations: <aqua>%d".formatted(plugin.generator().getLocationsSize()));
                 sender.sendRichMessage("<blue>- Tasks: <aqua>%d".formatted(plugin.generator().getTasksSize()));
+            }
+            default -> {
+                if (!(sender instanceof Player player)) {
+                    sender.sendMessage(Component.text("This command cannot be used by console! See also: /rtp reload, /rtp player {name}", NamedTextColor.RED));
+                    return true;
+                }
+
+                if (!sender.hasPermission("simplertp.command.rtp.region")) {
+                    sender.sendMessage(Component.text("You do not have permission to use this command.", NamedTextColor.RED));
+                    return true;
+                }
+
+                if (teleportHandler.hasTeleport(player)) {
+                    player.sendMessage(Component.text("You already have a pending teleport!", NamedTextColor.RED));
+                    return true;
+                }
+
+                String name = args[0];
+                final Region region = plugin.config().getRegionByName(name);
+                if (region == null) {
+                    sender.sendMessage(Component.text("Could not find region with that name.", NamedTextColor.RED));
+                    return true;
+                }
+
+                GeneratedLocation regionLoc = plugin.generator().getSpawnForRegion(region);
+                if (regionLoc == null) {
+                    sender.sendMessage(Component.text("Could not find a suitable spawn", NamedTextColor.RED));
+                    return true;
+                }
+
+                player.sendRichMessage("<gradient:blue:aqua>Waiting to teleport...");
+                teleportHandler.addTeleport(player, regionLoc.region(), regionLoc.location());
             }
         }
         return true;
@@ -153,21 +160,22 @@ public class RTPCommand implements TabExecutor {
         List<String> choices = new ArrayList<>();
         if (commandSender.hasPermission("simplertp.command.rtp.reload")) choices.add("reload");
         if (commandSender.hasPermission("simplertp.command.rtp.others")) choices.add("others");
-        if (commandSender.hasPermission("simplertp.command.rtp.region")) choices.add("region");
+        if (commandSender.hasPermission("simplertp.command.rtp.region")) {
+            choices.addAll(plugin.config().getRegions().stream().map(Region::name).toList());
+        }
+
         if (commandSender.hasPermission("simplertp.command.rtp.debug")) choices.add("debug");
+
         if (choices.isEmpty()) return List.of();
         if (strings.length == 1) {
             return choices.stream().filter(str -> str.startsWith(strings[0])).toList();
         }
+
         if (strings.length == 2) {
             if (!choices.contains(strings[0].toLowerCase())) return List.of();
             switch (strings[0].toLowerCase()) {
                 case "others" -> {
                     return Bukkit.getOnlinePlayers().stream().map(Player::getName).filter(str -> str.startsWith(strings[1])).toList();
-
-                }
-                case "region" -> {
-                    return plugin.config().getRegions().stream().map(RTPConfig.Region::name).filter(str -> str.startsWith(strings[1])).toList();
                 }
                 case "reload" -> {
                     return Stream.of("config", "locations", "all").filter(str -> str.startsWith(strings[1])).toList();
