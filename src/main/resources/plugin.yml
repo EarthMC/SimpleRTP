@@ -29,5 +29,8 @@ permissions:
     children:
       simplertp.command.rtp: true
 
-  simplertp.teleport.nowarmup:
+  simplertp.teleport.*:
     default: false
+    children:
+      simplertp.teleport.nowarmup: true
+      simplertp.teleport.nocooldown: true

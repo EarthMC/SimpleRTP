@@ -144,4 +144,8 @@ public class RTPConfig {
     public boolean respawnNearbyOnDeath() {
         return plugin.getConfig().getBoolean("respawn-nearby-on-death", false);
     }
+
+    public int getTeleportCooldownMinutes() {
+        return plugin.getConfig().getInt("teleport-cooldown-minutes", 10);
+    }
 }

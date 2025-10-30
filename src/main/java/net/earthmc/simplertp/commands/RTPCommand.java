@@ -15,6 +15,8 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -44,6 +46,10 @@ public class RTPCommand implements TabExecutor {
 
             if (teleportHandler.hasTeleport(player)) {
                 player.sendMessage(Component.text("You already have a pending teleport!", NamedTextColor.RED));
+                return true;
+            }
+
+            if (isOnTeleportCooldown(player)) {
                 return true;
             }
 
@@ -89,7 +95,7 @@ public class RTPCommand implements TabExecutor {
                     return true;
                 }
 
-                Player player = Bukkit.getPlayer(args[0]);
+                Player player = Bukkit.getPlayerExact(args[0]);
                 if (player == null) {
                     sender.sendMessage(Component.text("Player not found.", NamedTextColor.RED));
                     return true;
@@ -98,8 +104,8 @@ public class RTPCommand implements TabExecutor {
                 if (teleportHandler.hasTeleport(player)) {
                     sender.sendMessage(Component.text("Player already has a pending teleport!", NamedTextColor.RED));
                     return true;
-
                 }
+
                 player.sendRichMessage("<gradient:blue:aqua>Waiting to teleport...");
 
                 final GeneratedLocation generatedLoc = plugin.generator().getAndRemove();
@@ -132,6 +138,10 @@ public class RTPCommand implements TabExecutor {
 
                 if (teleportHandler.hasTeleport(player)) {
                     player.sendMessage(Component.text("You already have a pending teleport!", NamedTextColor.RED));
+                    return true;
+                }
+
+                if (isOnTeleportCooldown(player)) {
                     return true;
                 }
 
@@ -183,5 +193,28 @@ public class RTPCommand implements TabExecutor {
             }
         }
         return List.of();
+    }
+
+    private boolean isOnTeleportCooldown(final Player player) {
+        final Instant cooldownEndTime = plugin.teleportHandler().getCooldownTime(player.getUniqueId());
+        if (cooldownEndTime == null || Instant.now().isAfter(cooldownEndTime)) {
+            return false;
+        }
+
+        final Duration between = Duration.between(Instant.now(), cooldownEndTime);
+        final int minutes = between.toMinutesPart();
+        final int seconds = between.toSecondsPart();
+
+        final StringBuilder timeBuilder = new StringBuilder();
+        if (minutes > 0) {
+            timeBuilder.append(minutes).append(" minute").append(minutes == 1 ? "" : "s").append(" ");
+        }
+
+        if (seconds > 0) {
+            timeBuilder.append(seconds).append(" second").append(seconds == 1 ? "" : "s").append(" ");
+        }
+
+        player.sendMessage(Component.text("You must wait another " + timeBuilder.toString().trim() + " before teleporting again.", NamedTextColor.RED));
+        return true;
     }
 }

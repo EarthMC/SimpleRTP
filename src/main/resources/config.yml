@@ -7,6 +7,10 @@ respawn-nearby-on-death: false
 
 maxY: 128
 
+# After teleporting, players will be prevented from teleporting again within this time.
+# Can be bypassed with the simplertp.teleport.nocooldown permission.
+teleport-cooldown-minutes: 10
+
 blacklisted-biomes:
   - desert
   - ocean
