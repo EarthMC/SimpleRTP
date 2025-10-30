@@ -1,4 +1,4 @@
-package dev.warriorrr.simplertp.collection;
+package net.earthmc.simplertp.collection;
 
 import org.jetbrains.annotations.NotNull;
 

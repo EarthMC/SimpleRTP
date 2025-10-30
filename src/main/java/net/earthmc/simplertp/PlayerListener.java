@@ -1,7 +1,7 @@
-package dev.warriorrr.simplertp;
+package net.earthmc.simplertp;
 
-import dev.warriorrr.simplertp.compat.TownyCompat;
-import dev.warriorrr.simplertp.model.GeneratedLocation;
+import net.earthmc.simplertp.compat.TownyCompat;
+import net.earthmc.simplertp.model.GeneratedLocation;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;

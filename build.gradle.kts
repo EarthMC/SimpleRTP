@@ -19,13 +19,13 @@ dependencies {
     compileOnly("com.palmergames.bukkit.towny:towny:0.100.0.0")
 }
 
-group = "net.earthmc"
-version = "0.0.5"
+group = "net.earthmc.simplertp"
+version = "0.1.0"
 
 tasks {
     compileJava {
         options.encoding = Charsets.UTF_8.name()
-        options.release.set(17)
+        options.release.set(21)
     }
 
     processResources {

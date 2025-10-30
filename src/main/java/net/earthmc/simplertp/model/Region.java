@@ -1,6 +1,6 @@
-package dev.warriorrr.simplertp.model;
+package net.earthmc.simplertp.model;
 
-import dev.warriorrr.simplertp.collection.WeightedCollection;
+import net.earthmc.simplertp.collection.WeightedCollection;
 
 import java.util.Collections;
 import java.util.List;

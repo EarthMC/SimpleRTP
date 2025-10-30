@@ -1,8 +1,9 @@
 name: SimpleRTP
 version: '${version}'
-main: dev.warriorrr.simplertp.SimpleRTP
+main: net.earthmc.simplertp.SimpleRTP
 api-version: '1.20'
 authors: [ Warriorrr ]
+contributors: [Veyronity]
 folia-supported: true
 softdepend:
   - Towny

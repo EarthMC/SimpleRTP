@@ -1,9 +1,9 @@
-package dev.warriorrr.simplertp.commands;
+package net.earthmc.simplertp.commands;
 
-import dev.warriorrr.simplertp.SimpleRTP;
-import dev.warriorrr.simplertp.TeleportHandler;
-import dev.warriorrr.simplertp.model.GeneratedLocation;
-import dev.warriorrr.simplertp.model.Region;
+import net.earthmc.simplertp.SimpleRTP;
+import net.earthmc.simplertp.TeleportHandler;
+import net.earthmc.simplertp.model.GeneratedLocation;
+import net.earthmc.simplertp.model.Region;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;

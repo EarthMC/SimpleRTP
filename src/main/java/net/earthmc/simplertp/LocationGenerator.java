@@ -1,10 +1,10 @@
-package dev.warriorrr.simplertp;
+package net.earthmc.simplertp;
 
-import dev.warriorrr.simplertp.collection.ImmutableQueue;
-import dev.warriorrr.simplertp.compat.TownyCompat;
-import dev.warriorrr.simplertp.model.Area;
-import dev.warriorrr.simplertp.model.GeneratedLocation;
-import dev.warriorrr.simplertp.model.Region;
+import net.earthmc.simplertp.collection.ImmutableQueue;
+import net.earthmc.simplertp.compat.TownyCompat;
+import net.earthmc.simplertp.model.Area;
+import net.earthmc.simplertp.model.GeneratedLocation;
+import net.earthmc.simplertp.model.Region;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.HeightMap;
 import org.bukkit.Location;
@@ -13,7 +13,6 @@ import org.bukkit.block.Block;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;

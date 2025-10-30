@@ -1,7 +1,7 @@
-package dev.warriorrr.simplertp;
+package net.earthmc.simplertp;
 
-import dev.warriorrr.simplertp.model.Area;
-import dev.warriorrr.simplertp.model.Region;
+import net.earthmc.simplertp.model.Area;
+import net.earthmc.simplertp.model.Region;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;

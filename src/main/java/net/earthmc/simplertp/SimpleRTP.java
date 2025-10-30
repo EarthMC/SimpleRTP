@@ -1,7 +1,7 @@
-package dev.warriorrr.simplertp;
+package net.earthmc.simplertp;
 
-import dev.warriorrr.simplertp.commands.RTPCommand;
-import dev.warriorrr.simplertp.compat.TownyCompat;
+import net.earthmc.simplertp.commands.RTPCommand;
+import net.earthmc.simplertp.compat.TownyCompat;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;

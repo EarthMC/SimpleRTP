@@ -1,6 +1,6 @@
-package dev.warriorrr.simplertp;
+package net.earthmc.simplertp;
 
-import dev.warriorrr.simplertp.model.Region;
+import net.earthmc.simplertp.model.Region;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;

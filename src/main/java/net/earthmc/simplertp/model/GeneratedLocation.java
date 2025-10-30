@@ -1,4 +1,4 @@
-package dev.warriorrr.simplertp.model;
+package net.earthmc.simplertp.model;
 
 import org.bukkit.Location;
 
