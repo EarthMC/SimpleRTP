@@ -1,0 +1,10 @@
+[*]
+charset = utf-8
+end_of_line = lf
+
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.java]
+ij_java_class_count_to_use_import_on_demand = 99999
+ij_java_names_count_to_use_import_on_demand = 99999
