@@ -145,7 +145,7 @@ public class RTPCommand implements TabExecutor {
                     return true;
                 }
 
-                String name = args[0];
+                String name = String.join(" ", args);
                 final Region region = plugin.config().getRegionByName(name);
                 if (region == null) {
                     sender.sendMessage(Component.text("Could not find region with that name.", NamedTextColor.RED));
