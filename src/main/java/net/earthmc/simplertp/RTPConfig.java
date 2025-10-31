@@ -36,6 +36,7 @@ public class RTPConfig {
         this.plugin = plugin;
     }
 
+    @SuppressWarnings("unchecked")
     public void loadConfig() {
         blacklistedBlocks.clear();
         blacklistedBiomes.clear();
@@ -94,13 +95,28 @@ public class RTPConfig {
             final List<Map<?, ?>> rawAreas = regionConfig.getMapList("areas");
             final List<Area> areas = new ArrayList<>();
 
-            for (final Map<?, ?> area : rawAreas) {
-                areas.add(new Area(
-                    (int) area.get("minX"),
-                    (int) area.get("maxX"),
-                    (int) area.get("minZ"),
-                    (int) area.get("maxZ")
-                ));
+            for (final Map<?, ?> rawArea : rawAreas) {
+                final Map<String, Integer> area = (Map<String, Integer>) rawArea;
+
+                Integer x1 = area.getOrDefault("x1", area.get("minX"));
+                Integer x2 = area.getOrDefault("x2", area.get("maxX"));
+                Integer z1 = area.getOrDefault("z1", area.get("minZ"));
+                Integer z2 = area.getOrDefault("z2", area.get("maxZ"));
+
+                try {
+                    final int minX = Math.min(x1, x2);
+                    final int maxX = Math.max(x1, x2);
+                    final int minZ = Math.min(z1, z2);
+                    final int maxZ = Math.max(z1, z2);
+
+                    areas.add(new Area(minX,
+                            maxX,
+                            minZ,
+                            maxZ
+                    ));
+                } catch (NullPointerException e) {
+                    plugin.getSLF4JLogger().warn("Area at index {} of region {} is missing one of [x1, x2, z1, z2]", areas.size(), regionName);
+                }
             }
             if (areas.isEmpty()) return;
 
