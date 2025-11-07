@@ -1,5 +1,6 @@
 package net.earthmc.simplertp;
 
+import io.papermc.paper.registry.RegistryKey;
 import net.earthmc.simplertp.model.Area;
 import net.earthmc.simplertp.model.Region;
 import org.bukkit.Material;
@@ -21,6 +22,8 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.concurrent.ThreadLocalRandom;
+
+import static io.papermc.paper.registry.RegistryAccess.registryAccess;
 
 public class RTPConfig {
     private final SimpleRTP plugin;
@@ -52,7 +55,7 @@ public class RTPConfig {
                 continue;
             }
 
-            final Biome biome = Registry.BIOME.get(key);
+            final Biome biome = registryAccess().getRegistry((RegistryKey.BIOME)).get(key);
             if (biome != null) {
                 blacklistedBiomes.add(biome);
 

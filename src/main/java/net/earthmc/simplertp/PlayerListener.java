@@ -1,14 +1,14 @@
 package net.earthmc.simplertp;
 
+import io.papermc.paper.event.player.AsyncPlayerSpawnLocationEvent;
 import net.earthmc.simplertp.compat.TownyCompat;
 import net.earthmc.simplertp.model.GeneratedLocation;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerRespawnEvent;
-import org.spigotmc.event.player.PlayerSpawnLocationEvent;
 
 public class PlayerListener implements Listener {
 
@@ -18,17 +18,22 @@ public class PlayerListener implements Listener {
         this.plugin = plugin;
     }
 
-    @EventHandler
-    public void onSpawnLocationEvent(PlayerSpawnLocationEvent event) {
-        if (event.getPlayer().hasPlayedBefore() || !plugin.config().rtpFirstJoin())
+    @EventHandler @SuppressWarnings("UnstableApiUsage")
+    public void onSpawnLocationEvent(AsyncPlayerSpawnLocationEvent event) {
+        if (!event.isNewPlayer() || !plugin.config().rtpFirstJoin())
             return;
 
-        final GeneratedLocation generatedLoc = plugin.generator().getAndRemove();
-        final Location location = generatedLoc.location();
-        event.setSpawnLocation(location);
+        final GeneratedLocation generated = plugin.generator().getAndRemove();
+        final Location loc = generated.location();
+        event.setSpawnLocation(loc);
 
-        final Player player = event.getPlayer();
-        player.getScheduler().runDelayed(plugin, task -> player.sendRichMessage("<gradient:blue:aqua>You have been randomly teleported to: " + location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ() + " in " + generatedLoc.region().name() + "."), () -> {}, 1L);
+        event.getConnection().getAudience().sendMessage(
+                MiniMessage.miniMessage().deserialize(
+                        "<gradient:blue:aqua>You have been randomly teleported to: "
+                                + loc.getBlockX() + ", " + loc.getBlockY() + ", " + loc.getBlockZ()
+                                + " in " + generated.region().name() + "."
+                )
+        );
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
