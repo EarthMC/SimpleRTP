@@ -197,7 +197,7 @@ public class RTPCommand implements TabExecutor {
 
     private boolean isOnTeleportCooldown(final Player player) {
         final Instant cooldownEndTime = plugin.teleportHandler().getCooldownTime(player.getUniqueId());
-        if (cooldownEndTime == null || Instant.now().isAfter(cooldownEndTime)) {
+        if (cooldownEndTime == null || Instant.now().isAfter(cooldownEndTime) || player.hasPermission("simplertp.teleport.nocooldown")) {
             return false;
         }
 
