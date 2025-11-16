@@ -147,14 +147,16 @@ public class LocationGenerator {
     }
 
     public @NotNull GeneratedLocation getAndRemove() {
-        final GeneratedLocation randomLocation = getSpawnForRegion(plugin.config().getRandomRegion());
+        for (int i = 0; i < 50; i++) {
+            final GeneratedLocation randomLocation = getSpawnForRegion(plugin.config().getRandomRegion());
 
-        if (randomLocation == null) {
-            plugin.getLogger().warning("Safe locations is empty! Falling back to world spawn.");
-            return new GeneratedLocation(new Region("Spawn", List.of()), world.getSpawnLocation());
+            if (randomLocation != null) {
+                return randomLocation;
+            }
         }
 
-        return randomLocation;
+        plugin.getLogger().warning("Could not find a safe locations! Falling back to world spawn.");
+        return new GeneratedLocation(new Region("Spawn", List.of()), world.getSpawnLocation());
     }
 
     public @Nullable GeneratedLocation getSpawnForRegion(Region region) {
