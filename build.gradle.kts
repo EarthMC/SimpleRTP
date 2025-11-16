@@ -1,6 +1,7 @@
 plugins {
     java
     `maven-publish`
+    id("net.earthmc.conventions.java") version "1.0.1-SNAPSHOT"
 }
 
 repositories {
@@ -15,22 +16,12 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21.8-R0.1-SNAPSHOT")
     compileOnly("com.palmergames.bukkit.towny:towny:0.100.0.0")
 }
 
-group = "net.earthmc.simplertp"
-version = "0.1.0"
-
 tasks {
-    compileJava {
-        options.encoding = Charsets.UTF_8.name()
-        options.release.set(21)
-    }
-
     processResources {
-        filteringCharset = Charsets.UTF_8.name()
-
         expand("version" to project.version)
     }
 }
