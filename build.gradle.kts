@@ -1,7 +1,7 @@
 plugins {
     java
     `maven-publish`
-    id("net.earthmc.conventions.java") version "1.0.1-SNAPSHOT"
+    id("net.earthmc.conventions.publishing") version "1.0.2"
 }
 
 repositories {
@@ -23,5 +23,11 @@ dependencies {
 tasks {
     processResources {
         expand("version" to project.version)
+    }
+}
+
+earthmc {
+    publishing {
+        public = true
     }
 }
