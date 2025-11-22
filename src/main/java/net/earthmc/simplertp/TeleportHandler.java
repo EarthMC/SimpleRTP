@@ -2,6 +2,7 @@ package net.earthmc.simplertp;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import net.earthmc.simplertp.event.RandomTeleportEvent;
 import net.earthmc.simplertp.model.Region;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
@@ -45,6 +46,7 @@ public class TeleportHandler implements Listener {
             }
 
             teleports.remove(player.getUniqueId());
+            new RandomTeleportEvent(player, region).callEvent();
         });
 
         int delay = player.hasPermission("simplertp.teleport.nowarmup") ? 0 : 60;
