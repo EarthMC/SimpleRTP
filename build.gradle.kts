@@ -24,6 +24,12 @@ tasks {
     processResources {
         expand("version" to project.version)
     }
+
+    jar {
+        manifest {
+            attributes["paperweight-mappings-namespace"] = "mojang"
+        }
+    }
 }
 
 earthmc {
