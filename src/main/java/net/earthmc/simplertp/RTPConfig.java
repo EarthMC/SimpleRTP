@@ -12,6 +12,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnmodifiableView;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 import java.util.HashSet;
@@ -31,6 +32,8 @@ public class RTPConfig {
     private final Map<String, Region> regions = new HashMap<>();
     private final List<Region> regionsList = new ArrayList<>();
     private final List<Region> regionsView = Collections.unmodifiableList(regionsList);
+    private final List<String> regionNames = new ArrayList<>();
+    private final List<String> regionNamesView = Collections.unmodifiableList(regionNames);
 
     public RTPConfig(SimpleRTP plugin) {
         this.plugin = plugin;
@@ -55,7 +58,6 @@ public class RTPConfig {
             final Biome biome = Registry.BIOME.get(key);
             if (biome != null) {
                 blacklistedBiomes.add(biome);
-
             } else {
                 plugin.getLogger().warning("Could not find a biome with key " + key);
             }
@@ -88,6 +90,8 @@ public class RTPConfig {
         if (regions == null) {
             regions = config.createSection("regions");
         }
+
+        this.regionNames.clear();
 
         for (final String regionName : regions.getKeys(false)) {
             final ConfigurationSection regionConfig = regions.getConfigurationSection(regionName);
@@ -122,6 +126,7 @@ public class RTPConfig {
 
             final Region region = new Region(regionName, areas);
             this.regions.put(regionName.toLowerCase(Locale.ROOT), region);
+            this.regionNames.add(regionName);
         }
 
         this.regionsList.clear();
@@ -139,6 +144,11 @@ public class RTPConfig {
 
     public @Nullable Region getRegionByName(String regionName) {
         return regions.get(regionName.toLowerCase(Locale.ROOT));
+    }
+
+    @UnmodifiableView
+    public Collection<String> getRegionNames() {
+        return this.regionNamesView;
     }
 
     public int getMaxY() {
