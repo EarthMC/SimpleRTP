@@ -1,7 +1,7 @@
 plugins {
     java
     `maven-publish`
-    id("net.earthmc.conventions.publishing") version "1.0.2"
+    id("net.earthmc.conventions.publishing") version "1.0.7"
 }
 
 repositories {

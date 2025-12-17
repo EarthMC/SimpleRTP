@@ -28,7 +28,10 @@ public final class SimpleRTP extends JavaPlugin {
         }
 
         this.generator = new LocationGenerator(this, world);
-        generator.start();
+        getServer().getAsyncScheduler().runNow(this, task -> {
+            generator.loadGeneratedLocations(getDataPath().resolve("locations.json"));
+            generator.start();
+        });
 
         teleportHandler = new TeleportHandler(this);
         Bukkit.getPluginManager().registerEvents(teleportHandler, this);
@@ -42,8 +45,10 @@ public final class SimpleRTP extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (generator != null)
+        if (generator != null) {
             generator.stop();
+            generator.persistGeneratedLocations(getDataPath().resolve("locations.json"));
+        }
     }
 
     public RTPConfig config() {

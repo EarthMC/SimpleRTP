@@ -1,5 +1,10 @@
 package net.earthmc.simplertp;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import net.earthmc.simplertp.collection.ImmutableQueue;
 import net.earthmc.simplertp.compat.TownyCompat;
 import net.earthmc.simplertp.model.Area;
@@ -13,6 +18,10 @@ import org.bukkit.block.Block;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -77,7 +86,6 @@ public class LocationGenerator {
             task.cancel();
 
         runningTasks.set(0);
-        regionMap.clear();
     }
 
     public void reload() {
@@ -180,5 +188,66 @@ public class LocationGenerator {
 
     public int getLocationsSize() {
         return totalSavedLocations;
+    }
+
+    public void persistGeneratedLocations(Path filePath) {
+        final JsonObject object = new JsonObject();
+
+        for (final Map.Entry<Region, Queue<Location>> entry : regionMap.entrySet()) {
+            if (entry.getValue().isEmpty()) {
+                continue;
+            }
+
+            final JsonArray locationsArray = new JsonArray();
+            for (final Location location : entry.getValue()) {
+                final JsonObject locationObject = new JsonObject();
+
+                locationObject.addProperty("x", location.getX());
+                locationObject.addProperty("y", location.getY());
+                locationObject.addProperty("z", location.getZ());
+                locationsArray.add(locationObject);
+            }
+
+            object.add(entry.getKey().name(), locationsArray);
+        }
+
+        try {
+            Files.writeString(filePath, new GsonBuilder().setPrettyPrinting().create().toJson(object), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        } catch (IOException e) {
+            plugin.getSLF4JLogger().warn("Failed to persist generated locations", e);
+        }
+    }
+
+    public void loadGeneratedLocations(Path filePath) {
+        if (!Files.exists(filePath)) {
+            return;
+        }
+
+        final JsonObject object;
+        try {
+            object = new Gson().fromJson(Files.readString(filePath), JsonObject.class);
+            Files.deleteIfExists(filePath); // prevent re-using the same locations if server exits unexpectedly
+        } catch (IOException e) {
+            plugin.getSLF4JLogger().warn("Failed to read persisted generated locations from disk", e);
+            return;
+        }
+
+        for (final Map.Entry<String, JsonElement> entry : object.entrySet()) {
+            final Region region = plugin.config().getRegionByName(entry.getKey());
+            if (region == null) {
+                continue;
+            }
+
+            for (final JsonElement locationElement : entry.getValue().getAsJsonArray()) {
+                final JsonObject locationObject = locationElement.getAsJsonObject();
+
+                final Location location = new Location(world, locationObject.get("x").getAsDouble(), locationObject.get("y").getAsDouble(), locationObject.get("z").getAsDouble());
+
+                regionMap.computeIfAbsent(region, k -> new ConcurrentLinkedQueue<>()).add(location);
+                totalSavedLocations++;
+            }
+        }
+
+        plugin.getSLF4JLogger().info("Loaded {} location{} from disk.", totalSavedLocations, totalSavedLocations == 1 ? "" : "s");
     }
 }
