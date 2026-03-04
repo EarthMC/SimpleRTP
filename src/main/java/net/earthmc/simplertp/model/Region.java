@@ -32,6 +32,16 @@ public class Region {
         return this.areas;
     }
 
+    /**
+     * Constructs a new custom region instance with the given name, for use in events.
+     *
+     * @param name The name for this new region.
+     * @return A new region instance with the given name.
+     */
+    public static Region custom(final String name) {
+        return new Region(name, List.of());
+    }
+
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof Region region)) return false;

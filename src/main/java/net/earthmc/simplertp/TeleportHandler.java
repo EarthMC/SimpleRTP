@@ -19,14 +19,14 @@ import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class TeleportHandler implements Listener {
 
     private final SimpleRTP plugin;
-    private final Map<UUID, ScheduledTask> teleports = new HashMap<>();
+    private final Map<UUID, ScheduledTask> teleports = new ConcurrentHashMap<>();
     private final Duration cooldownTime;
     private final Cache<UUID, Instant> teleportCooldowns;
 
@@ -38,16 +38,25 @@ public class TeleportHandler implements Listener {
     }
 
     public void addTeleport(Player player, Region region, Location location) {
-        final Runnable teleport = () -> player.teleportAsync(location).thenRun(() -> {
-            player.sendRichMessage("<gradient:blue:aqua>You have been randomly teleported to: " + location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ() + " in " + region.name() + ".");
-
-            if (!player.hasPermission("simplertp.teleport.nocooldown")) {
-                teleportCooldowns.asMap().put(player.getUniqueId(), Instant.now().plus(cooldownTime));
+        final Runnable teleport = () -> {
+            final RandomTeleportEvent event = new RandomTeleportEvent(player.getConnection(), region, location, cooldownTime, false);
+            if (!event.callEvent()) {
+                return;
             }
 
-            teleports.remove(player.getUniqueId());
-            new RandomTeleportEvent(player, region).callEvent();
-        });
+            final Region region1 = event.getRegion();
+            final Location location1 = event.getLocation();
+
+            player.teleportAsync(location1).thenRunAsync(() -> {
+                player.sendRichMessage("<gradient:blue:aqua>You have been randomly teleported to: " + location1.getBlockX() + ", " + location1.getBlockY() + ", " + location1.getBlockZ() + " in " + region1.name() + ".");
+
+                if (!player.hasPermission("simplertp.teleport.nocooldown")) {
+                    teleportCooldowns.asMap().put(player.getUniqueId(), Instant.now().plus(event.getCooldownTime()));
+                }
+
+                teleports.remove(player.getUniqueId());
+            }, task -> player.getScheduler().run(plugin, t -> task.run(), () -> teleports.remove(player.getUniqueId())));
+        };
 
         int delay = player.hasPermission("simplertp.teleport.nowarmup") ? 0 : 60;
         if (delay == 0 && plugin.getServer().isOwnedByCurrentRegion(player)) {
