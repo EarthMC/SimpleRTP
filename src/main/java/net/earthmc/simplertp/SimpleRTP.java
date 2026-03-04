@@ -3,9 +3,12 @@ package net.earthmc.simplertp;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import net.earthmc.simplertp.commands.RTPCommand;
 import net.earthmc.simplertp.compat.TownyCompat;
-import org.bukkit.Bukkit;
+import net.earthmc.simplertp.listener.LegacySpawnLocationListener;
+import net.earthmc.simplertp.listener.RespawnListener;
+import net.earthmc.simplertp.listener.SpawnLocationListener;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class SimpleRTP extends JavaPlugin {
@@ -18,11 +21,12 @@ public final class SimpleRTP extends JavaPlugin {
         this.saveDefaultConfig();
         this.config.loadConfig();
 
-        final World world = Bukkit.getWorld(NamespacedKey.minecraft("overworld"));
+        final World world = getServer().getWorld(NamespacedKey.minecraft("overworld"));
+        final PluginManager pm = getServer().getPluginManager();
 
         if (world == null) {
             getLogger().severe("Unable to find a world with namespace minecraft:overworld, disabling.");
-            Bukkit.getPluginManager().disablePlugin(this);
+            pm.disablePlugin(this);
             return;
         }
 
@@ -32,16 +36,23 @@ public final class SimpleRTP extends JavaPlugin {
             generator.start();
         });
 
-        teleportHandler = new TeleportHandler(this);
-        Bukkit.getPluginManager().registerEvents(teleportHandler, this);
-        Bukkit.getPluginManager().registerEvents(new PlayerListener(this), this);
+        this.teleportHandler = new TeleportHandler(this);
+        pm.registerEvents(this.teleportHandler, this);
+        pm.registerEvents(new RespawnListener(this), this);
+
+        try {
+            Class.forName("io.papermc.paper.event.player.AsyncPlayerSpawnLocationEvent");
+            pm.registerEvents(new SpawnLocationListener(this), this);
+        } catch (ClassNotFoundException e) {
+            pm.registerEvents(new LegacySpawnLocationListener(this), this);
+        }
 
         getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
             event.registrar().register(RTPCommand.createCommand("rtp", this, teleportHandler), "Teleports the player to a random location.");
             event.registrar().register(RTPCommand.createCommand("tprandom", this, teleportHandler), "Teleports the player to a random location.");
         });
 
-        if (Bukkit.getPluginManager().isPluginEnabled("Towny")) {
+        if (pm.isPluginEnabled("Towny")) {
             TownyCompat.enable();
         }
     }

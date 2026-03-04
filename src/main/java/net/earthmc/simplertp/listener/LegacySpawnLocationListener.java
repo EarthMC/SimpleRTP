@@ -1,20 +1,18 @@
-package net.earthmc.simplertp;
+package net.earthmc.simplertp.listener;
 
-import net.earthmc.simplertp.compat.TownyCompat;
+import net.earthmc.simplertp.SimpleRTP;
 import net.earthmc.simplertp.model.GeneratedLocation;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerRespawnEvent;
 import org.spigotmc.event.player.PlayerSpawnLocationEvent;
 
-public class PlayerListener implements Listener {
-
+@SuppressWarnings("removal")
+public class LegacySpawnLocationListener implements Listener {
     private final SimpleRTP plugin;
 
-    public PlayerListener(SimpleRTP plugin) {
+    public LegacySpawnLocationListener(final SimpleRTP plugin) {
         this.plugin = plugin;
     }
 
@@ -29,17 +27,5 @@ public class PlayerListener implements Listener {
 
         final Player player = event.getPlayer();
         player.getScheduler().runDelayed(plugin, task -> player.sendRichMessage("<gradient:blue:aqua>You have been randomly teleported to: " + location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ() + " in " + generatedLoc.region().name() + "."), () -> {}, 1L);
-    }
-
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onPlayerRespawn(PlayerRespawnEvent event) {
-        if (!plugin.config().respawnNearbyOnDeath())
-            return;
-
-        // Return if the player is already being teleported to a respawn anchor or bed, or the respawn is already being handled by towny
-        if (event.isAnchorSpawn() || event.isBedSpawn() || TownyCompat.handlesRespawn(event.getPlayer(), event.getPlayer().getLocation()))
-            return;
-
-        event.setRespawnLocation(plugin.generator().generateRespawnLocation(event.getPlayer().getLocation()));
     }
 }
