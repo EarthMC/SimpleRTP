@@ -3,7 +3,6 @@ package net.earthmc.simplertp;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import net.earthmc.simplertp.commands.RTPCommand;
 import net.earthmc.simplertp.compat.TownyCompat;
-import net.earthmc.simplertp.listener.LegacySpawnLocationListener;
 import net.earthmc.simplertp.listener.RespawnListener;
 import net.earthmc.simplertp.listener.SpawnLocationListener;
 import org.bukkit.NamespacedKey;
@@ -39,13 +38,7 @@ public final class SimpleRTP extends JavaPlugin {
         this.teleportHandler = new TeleportHandler(this);
         pm.registerEvents(this.teleportHandler, this);
         pm.registerEvents(new RespawnListener(this), this);
-
-        try {
-            Class.forName("io.papermc.paper.event.player.AsyncPlayerSpawnLocationEvent");
-            pm.registerEvents(new SpawnLocationListener(this), this);
-        } catch (ClassNotFoundException e) {
-            pm.registerEvents(new LegacySpawnLocationListener(this), this);
-        }
+        pm.registerEvents(new SpawnLocationListener(this), this);
 
         getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
             event.registrar().register(RTPCommand.createCommand("rtp", this, teleportHandler), "Teleports the player to a random location.");

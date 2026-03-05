@@ -1,7 +1,7 @@
 name: SimpleRTP
 version: '${version}'
 main: net.earthmc.simplertp.SimpleRTP
-api-version: '1.21.8'
+api-version: '1.21.9'
 authors: [ Warriorrr ]
 contributors: [Veyronity]
 folia-supported: true
