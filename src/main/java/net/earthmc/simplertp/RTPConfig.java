@@ -1,5 +1,7 @@
 package net.earthmc.simplertp;
 
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
 import net.earthmc.simplertp.model.Area;
 import net.earthmc.simplertp.model.Region;
 import org.bukkit.Material;
@@ -55,7 +57,7 @@ public class RTPConfig {
                 continue;
             }
 
-            final Biome biome = Registry.BIOME.get(key);
+            final Biome biome = RegistryAccess.registryAccess().getRegistry(RegistryKey.BIOME).get(key);
             if (biome != null) {
                 blacklistedBiomes.add(biome);
             } else {
