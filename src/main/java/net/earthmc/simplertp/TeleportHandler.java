@@ -1,5 +1,6 @@
 package net.earthmc.simplertp;
 
+import com.destroystokyo.paper.event.player.PlayerConnectionCloseEvent;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import net.earthmc.simplertp.event.RandomTeleportEvent;
@@ -38,6 +39,9 @@ public class TeleportHandler implements Listener {
     }
 
     public void addTeleport(Player player, Region region, Location location) {
+        final UUID uuid = player.getUniqueId();
+        final Runnable retired = () -> cancelPendingTeleport(uuid);
+
         final Runnable teleport = () -> {
             final RandomTeleportEvent event = new RandomTeleportEvent(player.getConnection(), region, location, cooldownTime, false);
             if (!event.callEvent()) {
@@ -51,11 +55,11 @@ public class TeleportHandler implements Listener {
                 player.sendRichMessage("<gradient:blue:aqua>You have been randomly teleported to: " + location1.getBlockX() + ", " + location1.getBlockY() + ", " + location1.getBlockZ() + " in " + region1.name() + ".");
 
                 if (!player.hasPermission("simplertp.teleport.nocooldown")) {
-                    teleportCooldowns.asMap().put(player.getUniqueId(), Instant.now().plus(event.getCooldownTime()));
+                    teleportCooldowns.asMap().put(uuid, Instant.now().plus(event.getCooldownTime()));
                 }
 
-                teleports.remove(player.getUniqueId());
-            }, task -> player.getScheduler().run(plugin, t -> task.run(), () -> teleports.remove(player.getUniqueId())));
+                teleports.remove(uuid);
+            }, task -> player.getScheduler().run(plugin, t -> task.run(), retired));
         };
 
         int delay = player.hasPermission("simplertp.teleport.nowarmup") ? 0 : 60;
@@ -64,7 +68,7 @@ public class TeleportHandler implements Listener {
             return;
         }
 
-        ScheduledTask task = player.getScheduler().runDelayed(plugin, t -> teleport.run(), null, Math.max(1, delay));
+        ScheduledTask task = player.getScheduler().runDelayed(plugin, t -> teleport.run(), retired, Math.max(1, delay));
 
         teleports.put(player.getUniqueId(), task);
     }
@@ -75,10 +79,11 @@ public class TeleportHandler implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerDamage(EntityDamageEvent event) {
-        if (!(event.getEntity() instanceof Player player)) return;
-        ScheduledTask task = teleports.remove(player.getUniqueId());
-        if (task != null && !task.isCancelled()) {
-            task.cancel();
+        if (!(event.getEntity() instanceof Player player)) {
+            return;
+        }
+
+        if (cancelPendingTeleport(player.getUniqueId())) {
             player.sendMessage(Component.text("Teleportation cancelled due to taking damage.", NamedTextColor.DARK_RED));
         }
     }
@@ -86,17 +91,30 @@ public class TeleportHandler implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
-        if (!event.hasChangedBlock()) return;
-        ScheduledTask task = teleports.remove(player.getUniqueId());
-        if (task != null && !task.isCancelled()) {
-            task.cancel();
+        if (!event.hasChangedBlock()) {
+            return;
+        }
+
+        if (cancelPendingTeleport(player.getUniqueId())) {
             player.sendMessage(Component.text("Teleportation cancelled due to movement.", NamedTextColor.DARK_RED));
         }
     }
 
     @EventHandler
-    public void on(PlayerQuitEvent event) {
-        teleports.remove(event.getPlayer().getUniqueId());
+    public void on(PlayerConnectionCloseEvent event) {
+        cancelPendingTeleport(event.getPlayerUniqueId());
+    }
+
+    private boolean cancelPendingTeleport(final UUID uuid) {
+        final ScheduledTask task = this.teleports.remove(uuid);
+        if (task != null) {
+            final boolean cancelled = task.getExecutionState() == ScheduledTask.ExecutionState.IDLE;
+            task.cancel();
+
+            return cancelled;
+        }
+
+        return false;
     }
 
     @Nullable
