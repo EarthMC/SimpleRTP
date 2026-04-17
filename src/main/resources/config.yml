@@ -32,6 +32,9 @@ blacklisted-biomes:
 blacklisted-blocks:
   - leaves
 
+# The number of locations to generate for each region
+target-locations-per-region: 10
+
 regions:
   default:
     areas:

@@ -30,6 +30,7 @@ public final class SimpleRTP extends JavaPlugin {
         }
 
         this.generator = new LocationGenerator(this, world);
+        generator.setLocationsPerRegion(this.config.locationsPerRegion());
         getServer().getAsyncScheduler().runNow(this, task -> {
             generator.loadGeneratedLocations(getDataPath().resolve("locations.json"));
             generator.start();
@@ -68,6 +69,7 @@ public final class SimpleRTP extends JavaPlugin {
 
     public void reload() {
         this.config.loadConfig();
+        this.generator.setLocationsPerRegion(config.locationsPerRegion());
     }
 
     public TeleportHandler teleportHandler() {

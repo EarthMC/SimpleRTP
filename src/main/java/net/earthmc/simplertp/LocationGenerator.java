@@ -33,7 +33,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class LocationGenerator {
-    private static final int SAVED_LOCATIONS_PER_REGIONS = 10;
     private static final Queue<Location> EMPTY_QUEUE = ImmutableQueue.instance();
 
     private final SimpleRTP plugin;
@@ -42,6 +41,7 @@ public class LocationGenerator {
     private final World world;
     private final AtomicInteger runningTasks = new AtomicInteger();
     private ScheduledTask task;
+    private int locationsPerRegion = 10;
 
     public LocationGenerator(SimpleRTP plugin, World world) {
         this.plugin = plugin;
@@ -53,12 +53,12 @@ public class LocationGenerator {
         runningTasks.set(0);
 
         task = plugin.getServer().getAsyncScheduler().runAtFixedRate(plugin, t -> {
-            if (runningTasks.get() + totalSavedLocations >= SAVED_LOCATIONS_PER_REGIONS * plugin.config().getRegions().size()) {
+            if (runningTasks.get() + totalSavedLocations >= locationsPerRegion * plugin.config().getRegions().size()) {
                 return;
             }
 
             Region region = plugin.config().getRandomRegion();
-            if (region == null || regionMap.getOrDefault(region, EMPTY_QUEUE).size() >= SAVED_LOCATIONS_PER_REGIONS) {
+            if (region == null || regionMap.getOrDefault(region, EMPTY_QUEUE).size() >= locationsPerRegion) {
                 return;
             }
 
@@ -249,5 +249,9 @@ public class LocationGenerator {
         }
 
         plugin.getSLF4JLogger().info("Loaded {} location{} from disk.", totalSavedLocations, totalSavedLocations == 1 ? "" : "s");
+    }
+
+    public void setLocationsPerRegion(int locationsPerRegion) {
+        this.locationsPerRegion = locationsPerRegion;
     }
 }

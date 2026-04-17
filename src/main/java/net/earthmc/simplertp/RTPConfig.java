@@ -176,4 +176,8 @@ public class RTPConfig {
     public int getTeleportCooldownMinutes() {
         return plugin.getConfig().getInt("teleport-cooldown-minutes", 10);
     }
+
+    public int locationsPerRegion() {
+        return plugin.getConfig().getInt("target-locations-per-region", 10);
+    }
 }
