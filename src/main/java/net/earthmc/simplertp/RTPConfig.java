@@ -169,6 +169,10 @@ public class RTPConfig {
         return plugin.getConfig().getBoolean("random-teleport-on-first-join", true);
     }
 
+    public double firstJoinMinTps() {
+        return plugin.getConfig().getDouble("first-join-spawn-min-tps");
+    }
+
     public boolean respawnNearbyOnDeath() {
         return plugin.getConfig().getBoolean("respawn-nearby-on-death", false);
     }

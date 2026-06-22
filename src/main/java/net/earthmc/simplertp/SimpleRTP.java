@@ -1,10 +1,12 @@
 package net.earthmc.simplertp;
 
+import io.papermc.paper.ServerBuildInfo;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import net.earthmc.simplertp.commands.RTPCommand;
 import net.earthmc.simplertp.compat.TownyCompat;
 import net.earthmc.simplertp.listener.RespawnListener;
 import net.earthmc.simplertp.listener.SpawnLocationListener;
+import net.kyori.adventure.key.Key;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.plugin.PluginManager;
@@ -14,6 +16,8 @@ public final class SimpleRTP extends JavaPlugin {
     private final RTPConfig config = new RTPConfig(this);
     private LocationGenerator generator;
     private TeleportHandler teleportHandler;
+    @SuppressWarnings("UnstableApiUsage")
+    private final boolean isFolia = ServerBuildInfo.buildInfo().isBrandCompatible(Key.key("papermc", "folia"));
 
     @Override
     public void onEnable() {
@@ -74,5 +78,9 @@ public final class SimpleRTP extends JavaPlugin {
 
     public TeleportHandler teleportHandler() {
         return teleportHandler;
+    }
+
+    public boolean isFolia() {
+        return this.isFolia;
     }
 }

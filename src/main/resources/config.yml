@@ -3,6 +3,9 @@
 # Whether players will be randomly teleported automatically upon their first time joining
 random-teleport-on-first-join: true
 
+# If a region has less than the given amount of tps, it will be less likely to have players spawn inside of it on first join. (Folia only)
+first-join-spawn-min-tps: -1
+
 respawn-nearby-on-death: false
 
 maxY: 128
@@ -38,7 +41,7 @@ target-locations-per-region: 10
 regions:
   default:
     areas:
-      - minX: -100
-        maxX: 100
-        minZ: -100
-        maxZ: 100
+      - minX: -1000
+        maxX: 1000
+        minZ: -1000
+        maxZ: 1000

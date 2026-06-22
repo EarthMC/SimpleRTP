@@ -163,7 +163,7 @@ public class LocationGenerator {
             }
         }
 
-        plugin.getLogger().warning("Could not find a safe locations! Falling back to world spawn.");
+        plugin.getLogger().warning("Could not find a safe location! Falling back to world spawn.");
         return new GeneratedLocation(new Region("Spawn", List.of()), world.getSpawnLocation());
     }
 

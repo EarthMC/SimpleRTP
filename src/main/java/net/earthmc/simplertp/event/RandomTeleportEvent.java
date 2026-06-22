@@ -64,7 +64,7 @@ public class RandomTeleportEvent extends Event implements Cancellable {
     }
 
     public Location getLocation() {
-        return location;
+        return location.clone();
     }
 
     public Duration getCooldownTime() {

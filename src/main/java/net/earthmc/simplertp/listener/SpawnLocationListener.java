@@ -12,8 +12,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressWarnings("UnstableApiUsage")
@@ -30,9 +32,27 @@ public class SpawnLocationListener implements Listener {
         if (!event.isNewPlayer() || !plugin.config().rtpFirstJoin())
             return;
 
-        final GeneratedLocation generatedLoc = plugin.generator().getAndRemove();
-        Region region = generatedLoc.region();
+        GeneratedLocation generatedLoc = plugin.generator().getAndRemove();
         Location location = generatedLoc.location();
+
+        for (int tries = 0; tries < 15; tries++) {
+            location = generatedLoc.location();
+
+            final double minTps = plugin.config().firstJoinMinTps();
+            if (!plugin.isFolia() || minTps <= 0) {
+                break;
+            }
+
+            Location finalLocation = location;
+            final boolean acceptablePerformance = CompletableFuture.supplyAsync(() -> plugin.getServer().getTPS()[1] >= minTps, run -> plugin.getServer().getRegionScheduler().execute(plugin, finalLocation, run)).join();
+            if (acceptablePerformance) {
+                break;
+            }
+
+            generatedLoc = plugin.generator().getAndRemove();
+        }
+
+        Region region = generatedLoc.region();
 
         final RandomTeleportEvent rtpEvent = new RandomTeleportEvent(event.getConnection(), region, location, Duration.ZERO, event.isAsynchronous());
         if (!rtpEvent.callEvent()) {

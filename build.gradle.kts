@@ -2,6 +2,7 @@ plugins {
     java
     `maven-publish`
     id("net.earthmc.conventions.publishing") version "1.0.7"
+    id("xyz.jpenilla.run-paper") version "3.0.2"
 }
 
 repositories {
@@ -30,6 +31,21 @@ tasks {
             attributes["paperweight-mappings-namespace"] = "mojang"
         }
     }
+
+    runServer {
+        minecraftVersion("1.21.11")
+    }
+}
+
+runPaper.folia.registerTask()
+
+tasks.withType(xyz.jpenilla.runtask.task.AbstractRun::class) {
+    javaLauncher = javaToolchains.launcherFor {
+        @Suppress("UnstableApiUsage")
+        vendor = JvmVendorSpec.JETBRAINS
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+    jvmArgs("-XX:+AllowEnhancedClassRedefinition")
 }
 
 earthmc {
