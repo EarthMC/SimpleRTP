@@ -13,7 +13,7 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.time.Duration;
@@ -22,6 +22,7 @@ import java.time.Duration;
  * Called before a player is about to be randomly teleported.
  */
 @SuppressWarnings("UnstableApiUsage")
+@NullMarked
 public class RandomTeleportEvent extends Event implements Cancellable {
     private static final HandlerList HANDLERS = new HandlerList();
     private final PlayerCommonConnection connection;
@@ -36,6 +37,7 @@ public class RandomTeleportEvent extends Event implements Cancellable {
         this.connection = connection;
         this.region = region;
         this.location = location;
+        this.cooldownTime = cooldownTime;
     }
 
     @Deprecated(forRemoval = true)
@@ -105,7 +107,7 @@ public class RandomTeleportEvent extends Event implements Cancellable {
     }
 
     @Override
-    public @NotNull HandlerList getHandlers() {
+    public HandlerList getHandlers() {
         return HANDLERS;
     }
 
