@@ -22,6 +22,7 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 
 public class TeleportHandler implements Listener {
 
@@ -50,15 +51,29 @@ public class TeleportHandler implements Listener {
             final Region region1 = event.getRegion();
             final Location location1 = event.getLocation();
 
-            player.teleportAsync(location1).thenRunAsync(() -> {
-                player.sendRichMessage("<gradient:blue:aqua>You have been randomly teleported to: " + location1.getBlockX() + ", " + location1.getBlockY() + ", " + location1.getBlockZ() + " in " + region1.name() + ".");
-
-                if (!player.hasPermission("simplertp.teleport.nocooldown")) {
-                    teleportCooldowns.asMap().put(uuid, Instant.now().plus(event.getCooldownTime()));
+            final Executor playerExecutor = run -> {
+                if (plugin.getServer().isOwnedByCurrentRegion(player)) {
+                    run.run();
+                } else {
+                    player.getScheduler().execute(plugin, run, retired, 1L);
                 }
+            };
 
+            player.teleportAsync(location1).thenAcceptAsync(success -> {
                 teleports.remove(uuid);
-            }, task -> player.getScheduler().run(plugin, t -> task.run(), retired));
+
+                if (success) {
+                    player.sendRichMessage("<gradient:blue:aqua>You have been randomly teleported to: " + location1.getBlockX() + ", " + location1.getBlockY() + ", " + location1.getBlockZ() + " in " + region1.name() + ".");
+
+                    if (!player.hasPermission("simplertp.teleport.nocooldown")) {
+                        teleportCooldowns.put(uuid, Instant.now().plus(event.getCooldownTime()));
+                    }
+                }
+            }, playerExecutor).whenComplete((v, throwable) -> {
+                if (throwable != null) {
+                    plugin.getSLF4JLogger().warn("An exception occurred while random teleporting {}", player.getName(), throwable);
+                }
+            });
         };
 
         int delay = player.hasPermission("simplertp.teleport.nowarmup") ? 0 : 60;
@@ -118,6 +133,6 @@ public class TeleportHandler implements Listener {
 
     @Nullable
     public Instant getCooldownTime(final UUID uuid) {
-        return this.teleportCooldowns.asMap().get(uuid);
+        return this.teleportCooldowns.getIfPresent(uuid);
     }
 }
