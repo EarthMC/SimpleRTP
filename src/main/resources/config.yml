@@ -14,6 +14,9 @@ maxY: 128
 # Can be bypassed with the simplertp.teleport.nocooldown permission.
 teleport-cooldown-minutes: 10
 
+# If set to non-null, this message will be sent to the user if they do not have permission for the /rtp command instead of hiding the command completely.
+no-permission-message: null
+
 blacklisted-biomes:
   - desert
   - ocean

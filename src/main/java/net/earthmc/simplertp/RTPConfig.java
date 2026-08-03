@@ -4,6 +4,8 @@ import io.papermc.paper.registry.RegistryAccess;
 import io.papermc.paper.registry.RegistryKey;
 import net.earthmc.simplertp.model.Area;
 import net.earthmc.simplertp.model.Region;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
@@ -183,5 +185,14 @@ public class RTPConfig {
 
     public int locationsPerRegion() {
         return plugin.getConfig().getInt("target-locations-per-region", 10);
+    }
+
+    public @Nullable Component noPermissionMessage() {
+        final String message = plugin.getConfig().getString("no-permission-message", "null");
+        if ("null".equals(message)) {
+            return null;
+        }
+
+        return MiniMessage.miniMessage().deserialize(message);
     }
 }

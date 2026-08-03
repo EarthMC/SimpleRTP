@@ -30,10 +30,17 @@ public class RTPCommand {
 
     public static LiteralCommandNode<CommandSourceStack> createCommand(String rootName, SimpleRTP plugin, TeleportHandler teleportHandler) {
         return Commands.literal(rootName)
-                .requires(ctx -> ctx.getSender().hasPermission("simplertp.command.rtp"))
+                .requires(source -> plugin.config().noPermissionMessage() != null || source.getSender().hasPermission("simplertp.command.rtp"))
                 .executes(ctx -> {
-                    if (!(ctx.getSource().getSender() instanceof Player player)) {
-                        ctx.getSource().getSender().sendMessage(Component.text("This command cannot be used by console! See also: /rtp reload, /rtp player {name}", NamedTextColor.RED));
+                    final CommandSender sender = ctx.getSource().getSender();
+                    if (!(ctx.getSource().getExecutor() instanceof Player player)) {
+                        sender.sendMessage(Component.text("This command cannot be used by console! See also: /rtp reload, /rtp player {name}", NamedTextColor.RED));
+                        return Command.SINGLE_SUCCESS;
+                    }
+
+                    final Component noPermissionMessage = plugin.config().noPermissionMessage();
+                    if (noPermissionMessage != null && !sender.hasPermission("simplertp.command.rtp")) {
+                        sender.sendMessage(noPermissionMessage);
                         return Command.SINGLE_SUCCESS;
                     }
 
